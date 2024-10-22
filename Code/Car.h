@@ -245,7 +245,9 @@ public:
 
     void Render(Shader& shader)
     {
-        glm::mat4 modelRotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 1.0f, 0));
+        //glm::mat4 modelRotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 1.0f, 0));
+        glm::mat4 modelRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1, 0, 0));
+
 
         glm::vec3 pos = m_position;
         pos.y -= 0.5f;

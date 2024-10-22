@@ -13,7 +13,8 @@ const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 Camera Renderer::s_defaultCamera;
 
 Renderer::Renderer()
-    : m_baseShader("Assets/Shaders/lighting.vs", "Assets/Shaders/lighting.fs")
+    //: m_baseShader("Assets/Shaders/lighting.vs", "Assets/Shaders/lighting.fs")
+    : m_baseShader("Assets/Shaders/1.2.pbr.vs", "Assets/Shaders/1.2.pbr.fs")
     , m_depthShader("Assets/Shaders/shadow_depth.vs", "Assets/Shaders/shadow_depth.fs")
     , m_camera(&s_defaultCamera)
 {
@@ -166,6 +167,21 @@ void Renderer::RenderLighting(const glm::vec3& lightPosition, const glm::mat4& l
     m_baseShader.setVec3("viewPosition", m_camera->GetPosition());
     m_baseShader.setVec3("lightPosition", lightPosition);
     m_baseShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+    glm::vec3 lightPositions[] = {
+        glm::vec3(0.0f, 4.0f, 0.0f),
+    };
+
+    glm::vec3 lightColors[] = {
+        glm::vec3(250.0f, 250.0f, 250.0f),
+    };
+
+
+    for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
+    {
+        m_baseShader.setVec3("lightPositions[" + std::to_string(i) + "]", lightPositions[i]);
+        m_baseShader.setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
+    }
     
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_depthMap);

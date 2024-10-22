@@ -152,8 +152,17 @@ private:
         // normal: texture_normalN
 
         // 1. diffuse maps
-        vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        
+        vector<Texture> diffuseMaps;
+
+        if (material->GetTextureCount(aiTextureType_BASE_COLOR) > 0)
+            diffuseMaps = loadMaterialTextures(material, aiTextureType_BASE_COLOR, "texture_diffuse");
+        else
+            diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+
+
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+
         // 2. specular maps
         vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
@@ -163,6 +172,34 @@ private:
         // 4. height maps
         std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+
+
+        // PBR materials
+
+        vector<Texture> metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "texture_metallic");
+        //textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
+
+        vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
+        //textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+
+        /*
+        aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE);
+        aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_SHININESS); // use specular as fallback
+        aiTextureType_METALNESS, aiTextureType_NONE);
+        aiTextureType_NORMAL_CAMERA, aiTextureType_NORMALS);
+        aiTextureType_AMBIENT_OCCLUSION, aiTextureType_LIGHTMAP);
+        aiTextureType_EMISSION_COLOR, aiTextureType_EMISSIVE);
+        aiTextureType_HEIGHT, aiTextureType_NONE);
+        aiTextureType_OPACITY, aiTextureType_NONE);
+        */
+
+        std::cout << std::endl;
+        std::cout << "Diffuse: " << material->GetTextureCount(aiTextureType_DIFFUSE) << std::endl;
+        std::cout << "Base Color: " << material->GetTextureCount(aiTextureType_BASE_COLOR) << std::endl;
+        std::cout << "Metalness: " << material->GetTextureCount(aiTextureType_METALNESS) << std::endl;
+        std::cout << "Roughness: " << material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) << std::endl;
+        std::cout << "Normal: " << material->GetTextureCount(aiTextureType_NORMAL_CAMERA) << std::endl;
+        std::cout << "AO: " << material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) << std::endl;
         
         // return a mesh object created from the extracted mesh data
         return Mesh(vertices, indices, textures);

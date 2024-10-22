@@ -1,0 +1,122 @@
+newmtl Wheel1Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.0627451 0.0627451 0.0627451 
+
+d 1
+
+Ns 0
+
+map_Ka Wheel1_diff.png
+map_Kd Wheel1_diff.png
+map_d Wheel1_diff.png
+
+newmtl Cab1Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.0627451 0.0627451 0.0627451 
+
+d 1
+
+Ns 0
+
+map_Ka Cab1_diff.png
+map_Kd Cab1_diff.png
+map_d Cab1_diff.png
+
+newmtl Badges1Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.0627451 0.0627451 0.0627451 
+
+d 1
+
+Ns 0
+
+map_Ka Badges1_diff.png
+map_Kd Badges1_diff.png
+map_d Badges1_diff.png
+
+newmtl Paint1Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.396078 0.396078 0.396078 
+
+d 1
+
+Ns 0
+
+map_Ka Paint1_diff.png
+map_Kd Paint1_diff.png
+map_d Paint1_diff.png
+
+newmtl Chassis1Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.0313726 0.0313726 0.0313726 
+
+d 1
+
+Ns 0
+
+map_Ka Chassis1_diff.png
+map_Kd Chassis1_diff.png
+map_d Chassis1_diff.png
+
+newmtl Lights1Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.396078 0.396078 0.396078 
+
+d 1
+
+Ns 0
+
+map_Ka Lights1_diff.png
+map_Kd Lights1_diff.png
+map_d Lights1_diff.png
+
+newmtl Glass1Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.396078 0.396078 0.396078 
+
+d 0.501961
+
+Ns 0
+
+newmtl Miscellaneous1Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.0627451 0.0627451 0.0627451 
+
+d 1
+
+Ns 0
+
+map_Ka Miscellaneous1_diff.png
+map_Kd Miscellaneous1_diff.png
+map_d Miscellaneous1_diff.png
+
+newmtl Tyre1Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.0627451 0.0627451 0.0627451 
+
+d 1
+
+Ns 0
+
+map_Ka Tyre1_diff.png
+map_Kd Tyre1_diff.png
+map_d Tyre1_diff.png
+
