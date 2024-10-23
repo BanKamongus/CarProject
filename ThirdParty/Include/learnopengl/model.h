@@ -177,10 +177,10 @@ private:
         // PBR materials
 
         vector<Texture> metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "texture_metallic");
-        //textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
+        textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
 
         vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
-        //textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+        textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
 
         /*
         aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE);
@@ -255,6 +255,8 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
         GLenum format;
         if (nrComponents == 1)
             format = GL_RED;
+        else if (nrComponents == 2)
+            format = GL_RG;
         else if (nrComponents == 3)
             format = GL_RGB;
         else if (nrComponents == 4)

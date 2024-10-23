@@ -67,6 +67,8 @@ public:
         unsigned int metallicNr = 1;
         unsigned int roughnessNr = 1;
 
+        //std::cout << std::endl;
+
         for(unsigned int i = 0; i < textures.size(); i++)
         {
             glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
@@ -85,6 +87,8 @@ public:
                 number = std::to_string(metallicNr++);
             else if (name == "texture_roughness")
                 number = std::to_string(roughnessNr++);
+
+            //std::cout << "Bind: " << (name + number).c_str() << " to GL_TEXTURE" << i << std::endl;
 
             // now set the sampler to the correct texture unit
             glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);

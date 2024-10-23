@@ -14,7 +14,7 @@ Camera Renderer::s_defaultCamera;
 
 Renderer::Renderer()
     //: m_baseShader("Assets/Shaders/lighting.vs", "Assets/Shaders/lighting.fs")
-    : m_baseShader("Assets/Shaders/1.2.pbr.vs", "Assets/Shaders/1.2.pbr.fs")
+    : m_baseShader("Assets/Shaders/pbr.vs", "Assets/Shaders/pbr.fs")
     , m_depthShader("Assets/Shaders/shadow_depth.vs", "Assets/Shaders/shadow_depth.fs")
     , m_camera(&s_defaultCamera)
 {

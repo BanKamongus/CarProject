@@ -8,17 +8,20 @@
 
 #include <learnopengl/shader.h>
 #include <learnopengl/model.h>
-#include <learnopengl/camera.h>
+//#include <learnopengl/camera.h>
 
 #include "Application.h"
-//#include "Car.h"
-//#include "FollowCamera.h"
-//#include "Renderer.h"
+#include "Car.h"
+#include "FollowCamera.h"
+#include "Renderer.h"
 
 #include <iostream>
 
 unsigned int sphereVAO = 0;
 unsigned int indexCount;
+
+void RenderPbrScene(Shader& shader);
+
 void renderSphere()
 {
     if (sphereVAO == 0)
@@ -114,7 +117,7 @@ void renderSphere()
 
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
-//void renderScene(Renderer& renderer, const Shader& shader);
+void renderScene(Renderer& renderer, const Shader& shader);
 void renderQuad();
 
 // settings
@@ -124,7 +127,7 @@ const unsigned int SCR_HEIGHT = 768;
 // camera
 //Camera camera(glm::vec3(0.0f, 2.0f, 3.0f));
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+//Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = (float)SCR_WIDTH / 2.0;
 float lastY = (float)SCR_HEIGHT / 2.0;
 bool firstMouse = true;
@@ -140,7 +143,7 @@ unsigned int planeVAO;
 int main()
 {
     Application app;
-    //Renderer renderer;
+    Renderer renderer;
 
     Shader debugDepthQuad("Assets/Shaders/3.1.3.debug_quad.vs", "Assets/Shaders/3.1.3.debug_quad_depth.fs");
 
@@ -176,23 +179,25 @@ int main()
 
     // initialize static shader uniforms before rendering
     // --------------------------------------------------
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     shader.use();
     shader.setMat4("projection", projection);
 
 
-    /*
+    
     // load textures
     // -------------
     unsigned int woodTexture = loadTexture("Assets/wood.png");
 
     // lighting info
     // -------------
-    glm::vec3 lightPos(0.0f, 6.0f, 0.01f);
+    glm::vec3 lightPos(0.0f, 10.0f, 2.0f);
 
     //Car playerCar("Assets/Models/car/racer_nowheels.obj", glm::vec3{ 0, 0.5f, 0 }, glm::vec3{ 1.0f });
-    Car playerCar("Assets/Models/dirty_car/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.007f });
-    //FollowCamera followCamera(playerCar);
+    Car playerCar("Assets/Models/pbr_car/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.008f });
+
+    //Car playerCar("Assets/Models/pbr_gun/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.2f });
+    FollowCamera followCamera(playerCar);
 
     std::vector<StaticObject> objects{
        //{ "Assets/Models/moscow/moscow.obj", { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{80.0f} }
@@ -206,7 +211,7 @@ int main()
     glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
-    */
+   
 
     // render loop
     // -----------
@@ -218,69 +223,8 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // input
-        // -----
-        //processInput(app.GetWindow());
-        
         app.ProcessInput();
-
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        shader.use();
-        glm::mat4 view = camera.GetViewMatrix();
-        shader.setMat4("view", view);
-        shader.setVec3("camPos", camera.Position);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, albedo);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, normal);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, metallic);
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, roughness);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, ao);
-
-        // render rows*column number of spheres with material properties defined by textures (they all have the same material properties)
-        glm::mat4 model = glm::mat4(1.0f);
-        for (int row = 0; row < nrRows; ++row)
-        {
-            for (int col = 0; col < nrColumns; ++col)
-            {
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(
-                    (float)(col - (nrColumns / 2)) * spacing,
-                    (float)(row - (nrRows / 2)) * spacing,
-                    0.0f
-                ));
-                shader.setMat4("model", model);
-                shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-                renderSphere();
-            }
-        }
-
-        // render light source (simply re-render sphere at light positions)
-        // this looks a bit off as we use the same shader, but it'll make their positions obvious and 
-        // keeps the codeprint small.
-        for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
-        {
-            glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
-            newPos = lightPositions[i];
-
-            shader.setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
-            shader.setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
-
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, newPos);
-            model = glm::scale(model, glm::vec3(0.5f));
-            shader.setMat4("model", model);
-            shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-            renderSphere();
-        }
-
-        /*
+        
         playerCar.Update(deltaTime);
         //playerCar.AudioUpdate(audio, deltaTime, window);
         playerCar.CheckCollisions(objects, deltaTime);
@@ -297,9 +241,11 @@ int main()
         playerCar.Render(renderer.m_depthShader);
 
         for (auto& obj : objects)
-            obj.Render(renderer.m_baseShader);
+            obj.Render(renderer.m_depthShader);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        //RenderPbrScene(shader);
         
 
         renderer.RenderLighting(lightPos, lightSpaceMatrix);
@@ -319,18 +265,78 @@ int main()
         glBindTexture(GL_TEXTURE_2D, renderer.m_depthMap);
         //renderQuad();
 
-        */
+        
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(app.GetWindow());
-        glfwPollEvents();
+        //glfwPollEvents();
     }
 
     glfwTerminate();
     return 0;
 }
-/*
+
+void RenderPbrScene(Shader& shader)
+{
+    /*
+    shader.use();
+    //glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 view = glm::mat4(1.0f);
+    shader.setMat4("view", view);
+    //shader.setVec3("camPos", camera.Position);
+    shader.setVec3("camPos", glm::vec3(0, 0, 5));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedo);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normal);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, metallic);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, roughness);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, ao);
+
+    // render rows*column number of spheres with material properties defined by textures (they all have the same material properties)
+    glm::mat4 model = glm::mat4(1.0f);
+    for (int row = 0; row < nrRows; ++row)
+    {
+        for (int col = 0; col < nrColumns; ++col)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(
+                (float)(col - (nrColumns / 2)) * spacing,
+                (float)(row - (nrRows / 2)) * spacing,
+                0.0f
+            ));
+            shader.setMat4("model", model);
+            shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+            renderSphere();
+        }
+    }
+
+    // render light source (simply re-render sphere at light positions)
+    // this looks a bit off as we use the same shader, but it'll make their positions obvious and 
+    // keeps the codeprint small.
+    for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
+    {
+        glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
+        newPos = lightPositions[i];
+
+        shader.setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
+        shader.setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, newPos);
+        model = glm::scale(model, glm::vec3(0.5f));
+        shader.setMat4("model", model);
+        shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        renderSphere();
+    }
+    */
+}
+
 // renders the 3D scene
 // --------------------
 void renderScene(Renderer& renderer, const Shader& shader)
@@ -393,7 +399,7 @@ void renderQuad()
     glBindVertexArray(0);
 }
 
-*/
+
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
