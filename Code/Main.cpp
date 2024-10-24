@@ -10,7 +10,8 @@
 #include <learnopengl/model.h>
 
 #include "Application.h"
-#include "Car2.h"
+#include "Car.h"
+
 #include "FollowCamera.h"
 #include "Renderer.h"
 
@@ -42,8 +43,6 @@ unsigned int planeVAO;
 
 int main()
 {
-
-
     Application app;
     Renderer renderer;
 
@@ -57,10 +56,11 @@ int main()
     // -------------
     glm::vec3 lightPos(0.0f, 5.0f, 0.01f);
 
-    Car playerCar("Assets/Models/car/racer_nowheels.obj", glm::vec3{ 0, 0.5f, 0 }, glm::vec3{ 1.0f });
+    Car playerCar("Assets/Models/car/racer_nowheels.obj", glm::vec3{ 800, 15, -550 }, glm::vec3{ 1.0f });
     FollowCamera followCamera(playerCar);
 
     std::vector<StaticObject> objects{
+       { "Assets/Models/BanK_Racetrack/Racetrack.obj", { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{80.0f} }
        //{ "Assets/Models/moscow/moscow.obj", { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{80.0f} }
        //{ "Assets/Models/pirate/port_royale.obj", { 0.0f, -10.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{40.0f} }
     };
@@ -71,7 +71,6 @@ int main()
     glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
     glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
 
     // render loop
     // -----------
@@ -89,9 +88,25 @@ int main()
 
         app.ProcessInput();
 
-        playerCar.Update(app.GetWindow(),deltaTime);
+        playerCar.Update(deltaTime);
         //playerCar.AudioUpdate(audio, deltaTime, window);
         playerCar.CheckCollisions(objects, deltaTime);
+
+
+        /*
+        if (glfwGetKey(app.GetWindow(), GLFW_KEY_C) == GLFW_PRESS) {
+            All_Ghost.clear();
+        }
+        */
+
+        /*
+        for (CarGhost* Each : All_Ghost) {
+            Each->Update(app.GetWindow(), deltaTime);
+        }
+        */
+
+
+
         followCamera.Update(deltaTime);
 
         renderer.BeginFrame(followCamera);
@@ -102,12 +117,13 @@ int main()
 
         renderScene(renderer, renderer.m_depthShader);
         playerCar.Render(renderer.m_depthShader);
-        for (CarGhost* Each : All_Ghost) {///////////////
-            Each->Render(renderer.m_depthShader);
-        }
+
+        //for (CarGhost* Each : All_Ghost) {///////////////
+          //  Each->Render(renderer.m_depthShader);
+        //}
 
         for (auto& obj : objects)
-            obj.Render(renderer.m_baseShader);
+            obj.Render(renderer.m_depthShader);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -117,18 +133,13 @@ int main()
 
         renderScene(renderer, renderer.m_baseShader);
         playerCar.Render(renderer.m_baseShader);
+
+
+        /*
         for (CarGhost* Each : All_Ghost) {///////////////
             Each->Render(renderer.m_baseShader);
         }
-        if (glfwGetKey(app.GetWindow(), GLFW_KEY_C) == GLFW_PRESS) {
-            All_Ghost.clear();
-        }
-        for (CarGhost* Each : All_Ghost) {
-            Each->Update(app.GetWindow(), deltaTime);
-        }
-
-
-
+        */
 
         for (auto& obj : objects)
             obj.Render(renderer.m_baseShader);
@@ -143,7 +154,7 @@ int main()
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(app.GetWindow());
-        BanK_SystemKeys::Update(app.GetWindow());
+        //glfwPollEvents();
     }
 
     glfwTerminate();
