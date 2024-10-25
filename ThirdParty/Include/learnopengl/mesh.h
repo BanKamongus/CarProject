@@ -67,10 +67,41 @@ public:
         unsigned int metallicNr = 1;
         unsigned int roughnessNr = 1;
 
-        //std::cout << std::endl;
-
-        for(unsigned int i = 0; i < textures.size(); i++)
+        unsigned int defaultMap = 0;
+        unsigned int albedoMap = 0;
+        unsigned int normalMap = 0;
+        unsigned int metallicMap = 0;
+        unsigned int roughnessMap = 0;
+        unsigned int aoMap = 0;
+ 
+        for (unsigned int i = 0; i < textures.size(); i++)
         {
+            string name = textures[i].type;
+
+            if (name == "texture_diffuse")
+            {
+                albedoMap = textures[i].id;
+                defaultMap = textures[i].id;
+            }
+            else if (name == "texture_normal")
+            {
+                normalMap = textures[i].id;
+            }
+            else if (name == "texture_metallic")
+            {
+                metallicMap = roughnessMap = textures[i].id;
+
+            }
+            else if (name == "texture_roughness")
+            {
+                metallicMap = roughnessMap = textures[i].id;
+            }
+            else if (name == "texture_ao")
+            {
+                aoMap = textures[i].id;
+            }
+
+            /*
             glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
             // retrieve texture number (the N in diffuse_textureN)
             string number;
@@ -88,13 +119,31 @@ public:
             else if (name == "texture_roughness")
                 number = std::to_string(roughnessNr++);
 
-            //std::cout << "Bind: " << (name + number).c_str() << " to GL_TEXTURE" << i << std::endl;
 
             // now set the sampler to the correct texture unit
             glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
+
+            */
         }
+
+        albedoMap       = albedoMap != 0      ? albedoMap     : defaultMap;
+        normalMap       = normalMap != 0      ? normalMap     : defaultMap;
+        metallicMap     = metallicMap != 0    ? metallicMap   : defaultMap;
+        roughnessMap    = roughnessMap != 0   ? roughnessMap  : defaultMap;
+        aoMap           = aoMap != 0          ? aoMap         : defaultMap;
+
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, albedoMap);
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, normalMap);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, metallicMap);
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_2D, roughnessMap);
+        glActiveTexture(GL_TEXTURE7);
+        glBindTexture(GL_TEXTURE_2D, aoMap);
         
         // draw mesh
         glBindVertexArray(VAO);

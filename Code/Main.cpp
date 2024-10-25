@@ -20,7 +20,7 @@
 unsigned int sphereVAO = 0;
 unsigned int indexCount;
 
-void RenderPbrScene(Shader& shader);
+void RenderPbrScene(Shader& shader, Camera& camera);
 
 void renderSphere()
 {
@@ -136,6 +136,12 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+unsigned int albedo;
+unsigned int normal;
+unsigned int metallic;
+unsigned int roughness;
+unsigned int ao;
+
 // meshes
 unsigned int planeVAO;
 
@@ -159,23 +165,20 @@ int main()
 
     // load PBR material textures
     // --------------------------
-    unsigned int albedo = loadTexture("Assets/Textures/rusted_iron/albedo.png");
-    unsigned int normal = loadTexture("Assets/Textures/rusted_iron/normal.png");
-    unsigned int metallic = loadTexture("Assets/Textures/rusted_iron/metallic.png");
-    unsigned int roughness = loadTexture("Assets/Textures/rusted_iron/roughness.png");
-    unsigned int ao = loadTexture("Assets/Textures/rusted_iron/ao.png");
+    /*
+    albedo = loadTexture("Assets/Textures/rusted_iron/albedo.png");
+    normal = loadTexture("Assets/Textures/rusted_iron/normal.png");
+    metallic = loadTexture("Assets/Textures/rusted_iron/metallic.png");
+    roughness = loadTexture("Assets/Textures/rusted_iron/roughness.png");
+    ao = loadTexture("Assets/Textures/rusted_iron/ao.png");
+    */
 
-    // lights
-// ------
-    glm::vec3 lightPositions[] = {
-        glm::vec3(0.0f, 0.0f, 10.0f),
-    };
-    glm::vec3 lightColors[] = {
-        glm::vec3(150.0f, 150.0f, 150.0f),
-    };
-    int nrRows = 7;
-    int nrColumns = 7;
-    float spacing = 2.5;
+    albedo = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_Color.png");
+    normal = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_NormalGL.png");
+    metallic = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_Metalness.png");
+    roughness = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_Roughness.png");
+    ao = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_AmbientOcclusion.png");
+
 
     // initialize static shader uniforms before rendering
     // --------------------------------------------------
@@ -184,6 +187,8 @@ int main()
     shader.setMat4("projection", projection);
 
 
+    Camera pbrCamera;
+    pbrCamera.SetPosition({ 0, 0, 8 });
     
     // load textures
     // -------------
@@ -194,9 +199,9 @@ int main()
     glm::vec3 lightPos(0.0f, 10.0f, 2.0f);
 
     //Car playerCar("Assets/Models/car/racer_nowheels.obj", glm::vec3{ 0, 0.5f, 0 }, glm::vec3{ 1.0f });
-    Car playerCar("Assets/Models/pbr_car/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.008f });
+    //Car playerCar("Assets/Models/pbr_car/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.008f });
 
-    //Car playerCar("Assets/Models/pbr_gun/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.2f });
+    Car playerCar("Assets/Models/pbr_gun/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.2f });
     FollowCamera followCamera(playerCar);
 
     std::vector<StaticObject> objects{
@@ -230,9 +235,9 @@ int main()
         playerCar.CheckCollisions(objects, deltaTime);
         followCamera.Update(deltaTime);
 
-        renderer.BeginFrame(followCamera);
+        renderer.BeginFrame(pbrCamera);
 
-        
+        /*
         renderer.RenderDepthMap(lightSpaceMatrix);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, woodTexture);
@@ -244,10 +249,12 @@ int main()
             obj.Render(renderer.m_depthShader);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        */
 
-        //RenderPbrScene(shader);
+        RenderPbrScene(shader, pbrCamera);
         
 
+        /*
         renderer.RenderLighting(lightPos, lightSpaceMatrix);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, woodTexture);
@@ -258,13 +265,16 @@ int main()
         for (auto& obj : objects)
             obj.Render(renderer.m_baseShader);
 
+            */
+
+        /*
         debugDepthQuad.use();
         debugDepthQuad.setFloat("near_plane", near_plane);
         debugDepthQuad.setFloat("far_plane", far_plane);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, renderer.m_depthMap);
         //renderQuad();
-
+        */
         
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -277,15 +287,26 @@ int main()
     return 0;
 }
 
-void RenderPbrScene(Shader& shader)
+void RenderPbrScene(Shader& shader, Camera& camera)
 {
-    /*
+    // lights
+// ------
+    glm::vec3 lightPositions[] = {
+        glm::vec3(0.0f, 0.0f, 10.0f),
+    };
+    glm::vec3 lightColors[] = {
+        glm::vec3(150.0f, 150.0f, 150.0f),
+    };
+    int nrRows = 7;
+    int nrColumns = 7;
+    float spacing = 2.5;
+
     shader.use();
     //glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 view = glm::mat4(1.0f);
-    shader.setMat4("view", view);
+    shader.setMat4("view", camera.GetViewMatrix());
     //shader.setVec3("camPos", camera.Position);
-    shader.setVec3("camPos", glm::vec3(0, 0, 5));
+    shader.setVec3("camPos", camera.GetPosition());
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, albedo);
@@ -334,7 +355,6 @@ void RenderPbrScene(Shader& shader)
         shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         renderSphere();
     }
-    */
 }
 
 // renders the 3D scene

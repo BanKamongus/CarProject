@@ -51,7 +51,7 @@ private:
     {
         // read file via ASSIMP
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices);
         // check for errors
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
         {
@@ -90,6 +90,13 @@ private:
         vector<Vertex> vertices;
         vector<unsigned int> indices;
         vector<Texture> textures;
+
+        std::cout << "n Materials: " << scene->mNumMaterials << std::endl;
+
+        for (int i = 0; i < scene->mNumMaterials; i++)
+        {
+            std::cout << scene->mMaterials[i]->GetName().C_Str() << std::endl;
+        }
 
         // walk through each of the mesh's vertices
         for(unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -167,11 +174,14 @@ private:
         vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         // 3. normal maps
-        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "texture_normal");
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
         // 4. height maps
         std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+
+        std::vector<Texture> aoMaps = loadMaterialTextures(material, aiTextureType_LIGHTMAP, "texture_ao");
+        textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
 
 
         // PBR materials
@@ -194,11 +204,25 @@ private:
         */
 
         std::cout << std::endl;
+
+        std::cout << "Legacy\n";
         std::cout << "Diffuse: " << material->GetTextureCount(aiTextureType_DIFFUSE) << std::endl;
+        std::cout << "Height: " << material->GetTextureCount(aiTextureType_HEIGHT) << std::endl;
+        std::cout << "Normals: " << material->GetTextureCount(aiTextureType_NORMALS) << std::endl;
+        std::cout << "Specular: " << material->GetTextureCount(aiTextureType_SPECULAR) << std::endl;
+        std::cout << "Emissive: " << material->GetTextureCount(aiTextureType_EMISSIVE) << std::endl;
+        std::cout << "Shininess: " << material->GetTextureCount(aiTextureType_SHININESS) << std::endl;
+        std::cout << "Ambient: " << material->GetTextureCount(aiTextureType_AMBIENT) << std::endl;
+        std::cout << "Lightmap: " << material->GetTextureCount(aiTextureType_LIGHTMAP) << std::endl;
+        std::cout << "Emissive: " << material->GetTextureCount(aiTextureType_EMISSIVE) << std::endl;
+
+
+        std::cout << "PBR\n";
         std::cout << "Base Color: " << material->GetTextureCount(aiTextureType_BASE_COLOR) << std::endl;
         std::cout << "Metalness: " << material->GetTextureCount(aiTextureType_METALNESS) << std::endl;
         std::cout << "Roughness: " << material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) << std::endl;
         std::cout << "Normal: " << material->GetTextureCount(aiTextureType_NORMAL_CAMERA) << std::endl;
+        std::cout << "Emission Color: " << material->GetTextureCount(aiTextureType_EMISSION_COLOR) << std::endl;
         std::cout << "AO: " << material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) << std::endl;
         
         // return a mesh object created from the extracted mesh data

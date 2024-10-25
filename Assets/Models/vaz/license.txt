@@ -1,0 +1,11 @@
+Model Information:
+* title:	VAZ-2108 Rally
+* source:	https://sketchfab.com/3d-models/vaz-2108-rally-4b78b2265ed2493d847c7f368a6b4e5b
+* author:	matthew0451 (https://sketchfab.com/matthew0451)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "VAZ-2108 Rally" (https://sketchfab.com/3d-models/vaz-2108-rally-4b78b2265ed2493d847c7f368a6b4e5b) by matthew0451 (https://sketchfab.com/matthew0451) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
