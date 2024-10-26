@@ -35,14 +35,15 @@ public:
         m_position = Lerp(m_position, m_targetPosition, dt * m_cameraSpeed);
     }
 
-    virtual glm::mat4 GetViewProjectionMatrix() const
+    virtual glm::mat4 GetViewMatrix() const override
     {
-        glm::mat4 view = glm::lookAt(m_position, m_targetCar.m_position, glm::vec3(0, 1, 0));
+        return glm::lookAt(m_position, m_targetCar.m_position, glm::vec3(0, 1, 0));
+    }
 
+    virtual glm::mat4 GetProjectionMatrix() const override
+    {
         glm::vec2 windowSize = Application::Get().GetWindowSize();
-        glm::mat4 projection = glm::perspective(glm::radians(m_zoom), (float)windowSize.x / (float)windowSize.y, 0.1f, 1000.0f);
-
-        return projection * view;
+        return glm::perspective(glm::radians(m_zoom), (float)windowSize.x / (float)windowSize.y, 0.1f, 1000.0f);
     }
 
     float GetZoom() const

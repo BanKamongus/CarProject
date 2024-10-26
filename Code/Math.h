@@ -23,21 +23,15 @@ struct IntersectionResult {
 
 // Optimized ray-triangle intersection function
 const float EPSILON = 0.000001f;
-glm::vec3 edge1;
-glm::vec3 edge2;
-glm::vec3 pvec;
-glm::vec3 tvec;
-glm::vec3 qvec;
 
-
-float RayIntersectTriangle(const Ray& ray, const Triangle& triangle, glm::vec3& hitPoint) {
+static float RayIntersectTriangle(const Ray& ray, const Triangle& triangle, glm::vec3& hitPoint) {
 
     // Precompute the triangle edges
-    edge1 = triangle.v2 - triangle.v1;
-    edge2 = triangle.v3 - triangle.v1;
+    glm::vec3 edge1 = triangle.v2 - triangle.v1;
+    glm::vec3 edge2 = triangle.v3 - triangle.v1;
 
     // Begin calculating determinant and auxiliary values
-    pvec = glm::cross(ray.direction, edge2);
+    glm::vec3 pvec = glm::cross(ray.direction, edge2);
     float det = glm::dot(edge1, pvec);
 
     // If determinant is near zero, ray lies in the plane of the triangle
@@ -48,7 +42,7 @@ float RayIntersectTriangle(const Ray& ray, const Triangle& triangle, glm::vec3& 
     float invDet = 1.0f / det;
 
     // Calculate distance from Vert0 to ray origin
-    tvec = ray.position - triangle.v1;
+    glm::vec3 tvec = ray.position - triangle.v1;
 
     // Calculate u parameter and test bounds
     float u = glm::dot(tvec, pvec) * invDet;
@@ -57,7 +51,7 @@ float RayIntersectTriangle(const Ray& ray, const Triangle& triangle, glm::vec3& 
     }
 
     // Prepare to test v parameter
-    qvec = glm::cross(tvec, edge1);
+    glm::vec3 qvec = glm::cross(tvec, edge1);
 
     // Calculate v parameter and test bounds
     float v = glm::dot(ray.direction, qvec) * invDet;
@@ -78,23 +72,23 @@ float RayIntersectTriangle(const Ray& ray, const Triangle& triangle, glm::vec3& 
     return std::numeric_limits<float>::max();  // No intersection
 }
 
-glm::vec3 Lerp(const glm::vec3& a, const glm::vec3& b, float t)
+static glm::vec3 Lerp(const glm::vec3& a, const glm::vec3& b, float t)
 {
     return a + t * (b - a);
 }
 
-float Lerpf(float start, float end, float t)
+static float Lerpf(float start, float end, float t)
 {
     return start + t * (end - start);
 }
 
-bool IsNearMe2D(const glm::vec3& Subject, const glm::vec3& Me, float Range)
+static bool IsNearMe2D(const glm::vec3& Subject, const glm::vec3& Me, float Range)
 {
     return (Subject.x > Me.x - Range && Subject.x < Me.x + Range) &&
         (Subject.z > Me.z - Range && Subject.z < Me.z + Range);
 }
 
-float GetYawFromForward(const glm::vec3& m_forward)
+static float GetYawFromForward(const glm::vec3& m_forward)
 {
     glm::vec3 normalizedForward = glm::normalize(m_forward);
     return std::atan2(normalizedForward.x, normalizedForward.z);

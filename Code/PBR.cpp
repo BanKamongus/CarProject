@@ -373,16 +373,11 @@ int main()
 
     // initialize static shader uniforms before rendering
     // --------------------------------------------------
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    pbrShader.use();
-    pbrShader.setMat4("projection", projection);
-    backgroundShader.use();
-    backgroundShader.setMat4("projection", projection);
 
     // then before rendering, configure the viewport to the original framebuffer's screen dimensions
-    int scrWidth, scrHeight;
-    glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
-    glViewport(0, 0, scrWidth, scrHeight);
+    //int scrWidth, scrHeight;
+    //glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
+    //glViewport(0, 0, scrWidth, scrHeight);
 
     // render loop
     // -----------
@@ -397,6 +392,16 @@ int main()
         // input
         // -----
         processInput(window);
+
+        int scrWidth, scrHeight;
+        glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
+        glViewport(0, 0, scrWidth, scrHeight);
+
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)scrWidth / (float)scrHeight, 0.1f, 100.0f);
+        pbrShader.use();
+        pbrShader.setMat4("projection", projection);
+        backgroundShader.use();
+        backgroundShader.setMat4("projection", projection);
 
         // render
         // ------

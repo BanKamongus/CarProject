@@ -70,7 +70,7 @@ Application::Application()
     glfwSetKeyCallback(window, key_callback);
 
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -79,15 +79,13 @@ Application::Application()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return;
     }
-
-    glEnable(GL_DEPTH_TEST);
-
 }
 
 glm::vec2 Application::GetWindowSize()
 {
     glm::ivec2 windowSize{ 0 };
-    glfwGetWindowSize(window, &windowSize.x, &windowSize.y);
+    //glfwGetWindowSize(window, &windowSize.x, &windowSize.y);
+    glfwGetFramebufferSize(window, &windowSize.x, &windowSize.y);
 
     return windowSize;
 }

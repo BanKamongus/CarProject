@@ -146,10 +146,14 @@ unsigned int ao;
 unsigned int planeVAO;
 
 
+#include "ImGuiManager.h"
+
 int main()
 {
     Application app;
     Renderer renderer;
+
+    ImGuiManager imgui;
 
     Shader debugDepthQuad("Assets/Shaders/3.1.3.debug_quad.vs", "Assets/Shaders/3.1.3.debug_quad_depth.fs");
 
@@ -182,13 +186,13 @@ int main()
 
     // initialize static shader uniforms before rendering
     // --------------------------------------------------
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    shader.use();
-    shader.setMat4("projection", projection);
+   // glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    //shader.use();
+    //shader.setMat4("projection", projection);
 
 
     Camera pbrCamera;
-    pbrCamera.SetPosition({ 0, 0, 8 });
+    pbrCamera.SetPosition({ 0, 0, 15 });
     
     // load textures
     // -------------
@@ -198,14 +202,15 @@ int main()
     // -------------
     glm::vec3 lightPos(0.0f, 10.0f, 2.0f);
 
-    //Car playerCar("Assets/Models/car/racer_nowheels.obj", glm::vec3{ 0, 0.5f, 0 }, glm::vec3{ 1.0f });
+    Car playerCar("Assets/Models/car/racer_nowheels.obj", glm::vec3{ 0, 0.5f, 0 }, glm::vec3{ 1.0f });
     //Car playerCar("Assets/Models/pbr_car/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.008f });
 
-    Car playerCar("Assets/Models/pbr_gun/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.2f });
+    //Car pbrCar("Assets/Models/subaru/scene.gltf", glm::vec3{ 0.0f }, glm::vec3{ 1.0f });
+    //Car playerCar("Assets/Models/pbr_gun/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.2f });
     FollowCamera followCamera(playerCar);
 
     std::vector<StaticObject> objects{
-       //{ "Assets/Models/moscow/moscow.obj", { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{80.0f} }
+       { "Assets/Models/moscow/moscow.obj", { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{80.0f} }
        //{ "Assets/Models/pirate/port_royale.obj", { 0.0f, -10.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{40.0f} }
     };
 
@@ -216,7 +221,17 @@ int main()
     glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
-   
+    unsigned int goldAlbedoMap = loadTexture("Assets/Textures/pbr/foil/Foil002_1K-PNG_Color.png");
+    unsigned int goldNormalMap = loadTexture("Assets/Textures/pbr/foil/Foil002_1K-PNG_NormalGL.png");
+    unsigned int goldMetallicMap = loadTexture("Assets/Textures/pbr/foil/Foil002_1K-PNG_Metalness.png");
+    unsigned int goldRoughnessMap = loadTexture("Assets/Textures/pbr/foil/Foil002_1K-PNG_Roughness.png");
+    unsigned int goldAOMap = loadTexture("Assets/Textures/pbr/foil/Foil002_1K-PNG_AmbientOcclusion.png");
+
+    glm::mat4 model = glm::mat4(1.0f);
+
+
+
+
 
     // render loop
     // -----------
@@ -229,13 +244,47 @@ int main()
         lastFrame = currentFrame;
 
         app.ProcessInput();
+
+        glm::mat4 projection = pbrCamera.GetProjectionMatrix();
+        renderer.m_pbrShader.use();
+        renderer.m_pbrShader.setMat4("projection", projection);
+        renderer.m_backgroundShader.use();
+        renderer.m_backgroundShader.setMat4("projection", projection);
+        
         
         playerCar.Update(deltaTime);
         //playerCar.AudioUpdate(audio, deltaTime, window);
         playerCar.CheckCollisions(objects, deltaTime);
         followCamera.Update(deltaTime);
+        
 
-        renderer.BeginFrame(pbrCamera);
+        renderer.BeginFrame(followCamera);
+
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, goldAlbedoMap);
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, goldNormalMap);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, goldMetallicMap);
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_2D, goldRoughnessMap);
+        glActiveTexture(GL_TEXTURE7);
+        glBindTexture(GL_TEXTURE_2D, goldAOMap);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-3.0, 0.0, 2.0));
+
+        renderer.m_pbrShader.setMat4("model", model);
+        renderer.m_pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        renderSphere();
+
+        playerCar.Render(renderer.m_pbrShader);
+
+        for (auto& obj : objects)
+            obj.Render(renderer.m_pbrShader);
+
+
+        renderer.RenderSkybox();
 
         /*
         renderer.RenderDepthMap(lightSpaceMatrix);
@@ -251,9 +300,8 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         */
 
-        RenderPbrScene(shader, pbrCamera);
+        //RenderPbrScene(shader, pbrCamera);
         
-
         /*
         renderer.RenderLighting(lightPos, lightSpaceMatrix);
         glActiveTexture(GL_TEXTURE0);
@@ -265,9 +313,8 @@ int main()
         for (auto& obj : objects)
             obj.Render(renderer.m_baseShader);
 
-            */
 
-        /*
+        
         debugDepthQuad.use();
         debugDepthQuad.setFloat("near_plane", near_plane);
         debugDepthQuad.setFloat("far_plane", far_plane);
@@ -275,7 +322,9 @@ int main()
         glBindTexture(GL_TEXTURE_2D, renderer.m_depthMap);
         //renderQuad();
         */
-        
+
+        imgui.Render(pbrCamera, playerCar);
+
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -386,39 +435,6 @@ void renderScene(Renderer& renderer, const Shader& shader)
     shader.setMat4("model", model);
     //renderer.DrawCube();
 }
-
-
-// renderQuad() renders a 1x1 XY quad in NDC
-// -----------------------------------------
-unsigned int quadVAO = 0;
-unsigned int quadVBO;
-void renderQuad()
-{
-    if (quadVAO == 0)
-    {
-        float quadVertices[] = {
-            // positions        // texture Coords
-            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        };
-        // setup plane VAO
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-        glBindVertexArray(quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    }
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-}
-
 
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly

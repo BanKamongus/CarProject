@@ -34,6 +34,21 @@ public:
         return m_position;
     }
 
+    void SetPosition(const glm::vec3& position)
+    {
+        m_position = position;
+    }
+
+    glm::vec3 GetScale() const
+    {
+        return m_scale;
+    }
+
+    void SetScale(const glm::vec3& scale)
+    {
+        m_scale = scale;
+    }
+
     void Update(float dt)
     {
         int accelerationInput = 0;
@@ -245,8 +260,8 @@ public:
 
     void Render(Shader& shader)
     {
-        //glm::mat4 modelRotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 1.0f, 0));
-        glm::mat4 modelRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1, 0, 0));
+        glm::mat4 modelRotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 1.0f, 0));
+        //glm::mat4 modelRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1, 0, 0));
 
 
         glm::vec3 pos = m_position;
@@ -265,6 +280,7 @@ public:
             * glm::scale(glm::mat4(1.0f), m_scale);
 
         shader.setMat4("model", model);
+        shader.setMat4("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         m_model.Draw(shader);
 
         glm::vec3 frontWheelPosition = m_forward * m_frontWheelOffset;
