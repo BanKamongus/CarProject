@@ -45,10 +45,8 @@ glm::vec3 InputVec3(const std::string& text, const glm::vec3 & v)
 	return { values[0], values[1], values[2] };
 }
 
-void ImGuiManager::Render(Camera& camera, Car& car)
+void ImGuiManager::Render(Camera& camera, Car& car, Renderer& renderer)
 {
-	Begin();
-
 	ImGui::Begin("Main");
 
 	glm::vec3 tempPos = InputVec3("Camera Pos", camera.GetPosition());
@@ -61,9 +59,50 @@ void ImGuiManager::Render(Camera& camera, Car& car)
 	car.SetScale(carScale);
 
 
-	ImGui::End();
+	if (ImGui::Button("Recompile shaders"))
+	{
+		renderer.RecompileShaders();
+	}
 
-	End();
+	ImGui::End();
+}
+
+void ImGuiManager::RenderLights(std::vector<Light>& lights)
+{
+	ImGui::Begin("Lights");
+
+	if (ImGui::Button("Add"))
+	{
+		lights.push_back(Light{});
+	}
+
+	int toDeleteLight = -1;
+
+	for (int i = 0; i < lights.size(); i++)
+	{
+		ImGui::Separator();
+		ImGui::Text(("Light " + std::to_string(i + 1)).c_str());
+
+		ImGui::PushID(i);
+		glm::vec3 tempPos = InputVec3("Pos", lights[i].position);
+
+		if (ImGui::Button("Delete"))
+		{
+			toDeleteLight = i;
+		}
+
+		ImGui::PopID();
+
+		lights[i].position = tempPos;
+	}
+
+	if (toDeleteLight >= 0)
+	{
+		lights.erase(lights.begin() + toDeleteLight);
+	}
+
+	ImGui::End();
+	//for ()
 }
 
 void ImGuiManager::End()

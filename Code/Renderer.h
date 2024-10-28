@@ -15,6 +15,8 @@ public:
 	Renderer();
 	~Renderer();
 
+	void SetupPBR(const std::string& cubeMapPath);
+
 	void BeginFrame(Camera& camera);
 
 	void DrawPlane();
@@ -24,6 +26,7 @@ public:
 	void RenderLighting(const glm::vec3& lightPosition, const glm::mat4& lightSpaceMatrix);
 	void RenderSkybox();
 
+	void RecompileShaders();
 
 	Shader m_baseShader;
 	Shader m_depthShader;
@@ -56,7 +59,6 @@ private:
 	void SetupDepthMap();
 	void SetupPlane();
 	void SetupCube();
-	void SetupPBR();
 
 	Camera* m_camera = nullptr;
 	static Camera s_defaultCamera;

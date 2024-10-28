@@ -13,6 +13,7 @@
 #include "Application.h"
 #include "Car.h"
 #include "FollowCamera.h"
+#include "EditorCamera.h"
 #include "Renderer.h"
 
 #include <iostream>
@@ -152,6 +153,7 @@ int main()
 {
     Application app;
     Renderer renderer;
+    renderer.SetupPBR("Assets/Textures/hdr/starry_night_sky_dome_2k.hdr");
 
     ImGuiManager imgui;
 
@@ -169,20 +171,22 @@ int main()
 
     // load PBR material textures
     // --------------------------
-    /*
+    
+        /*
     albedo = loadTexture("Assets/Textures/rusted_iron/albedo.png");
     normal = loadTexture("Assets/Textures/rusted_iron/normal.png");
     metallic = loadTexture("Assets/Textures/rusted_iron/metallic.png");
     roughness = loadTexture("Assets/Textures/rusted_iron/roughness.png");
     ao = loadTexture("Assets/Textures/rusted_iron/ao.png");
-    */
-
+    
+    
     albedo = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_Color.png");
     normal = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_NormalGL.png");
     metallic = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_Metalness.png");
     roughness = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_Roughness.png");
     ao = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_AmbientOcclusion.png");
 
+    */
 
     // initialize static shader uniforms before rendering
     // --------------------------------------------------
@@ -203,14 +207,14 @@ int main()
     glm::vec3 lightPos(0.0f, 10.0f, 2.0f);
 
     Car playerCar("Assets/Models/car/racer_nowheels.obj", glm::vec3{ 0, 0.5f, 0 }, glm::vec3{ 1.0f });
-    //Car playerCar("Assets/Models/pbr_car/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.008f });
+    //Car playerCar("Assets/Models/subaru/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.0075f });
 
     //Car pbrCar("Assets/Models/subaru/scene.gltf", glm::vec3{ 0.0f }, glm::vec3{ 1.0f });
     //Car playerCar("Assets/Models/pbr_gun/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.2f });
     FollowCamera followCamera(playerCar);
 
     std::vector<StaticObject> objects{
-       { "Assets/Models/moscow/moscow.obj", { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{80.0f} }
+       //{ "Assets/Models/moscow/moscow.obj", { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{80.0f} }
        //{ "Assets/Models/pirate/port_royale.obj", { 0.0f, -10.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{40.0f} }
     };
 
@@ -229,9 +233,16 @@ int main()
 
     glm::mat4 model = glm::mat4(1.0f);
 
+    std::vector<Light> lights {
+        {{-10.0f,  10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}},
+        {{10.0f,  10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}},
+        {{-10.0f, -10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}},
+        {{10.0f, -10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}}
+    };
 
+    bool editorMode = false;
 
-
+    EditorCamera editorCamera;
 
     // render loop
     // -----------
@@ -245,20 +256,36 @@ int main()
 
         app.ProcessInput();
 
-        glm::mat4 projection = pbrCamera.GetProjectionMatrix();
+        if (Input::GetKeyDown(GLFW_KEY_TAB))
+        {
+            editorMode = !editorMode;
+            app.SetCursorEnable(editorMode);
+        }
+
+        Camera* mainCamera = &followCamera;
+
+        if (editorMode)
+            mainCamera = &editorCamera;
+
+        //glm::mat4 projection = pbrCamera.GetProjectionMatrix();
+        glm::mat4 projection = mainCamera->GetProjectionMatrix();
         renderer.m_pbrShader.use();
         renderer.m_pbrShader.setMat4("projection", projection);
         renderer.m_backgroundShader.use();
         renderer.m_backgroundShader.setMat4("projection", projection);
         
-        
-        playerCar.Update(deltaTime);
-        //playerCar.AudioUpdate(audio, deltaTime, window);
-        playerCar.CheckCollisions(objects, deltaTime);
-        followCamera.Update(deltaTime);
+
+        if (!editorMode)
+        {
+            playerCar.Update(deltaTime);
+            //playerCar.AudioUpdate(audio, deltaTime, window);
+            playerCar.CheckCollisions(objects, deltaTime);
+        }
+
+        mainCamera->Update(deltaTime);
         
 
-        renderer.BeginFrame(followCamera);
+        renderer.BeginFrame(*mainCamera);
 
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, goldAlbedoMap);
@@ -278,13 +305,30 @@ int main()
         renderer.m_pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         renderSphere();
 
+        renderScene(renderer, renderer.m_pbrShader);
+
         playerCar.Render(renderer.m_pbrShader);
 
         for (auto& obj : objects)
             obj.Render(renderer.m_pbrShader);
 
+        for (unsigned int i = 0; i < lights.size(); ++i)
+        {
+            glm::vec3 newPos = lights[i].position + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
+            newPos = lights[i].position;
+            renderer.m_pbrShader.setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
+            renderer.m_pbrShader.setVec3("lightColors[" + std::to_string(i) + "]", lights[i].color);
 
-        renderer.RenderSkybox();
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, newPos);
+            model = glm::scale(model, glm::vec3(0.5f));
+            renderer.m_pbrShader.setMat4("model", model);
+            renderer.m_pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+            renderSphere();
+        }
+
+
+        //renderer.RenderSkybox();
 
         /*
         renderer.RenderDepthMap(lightSpaceMatrix);
@@ -323,7 +367,13 @@ int main()
         //renderQuad();
         */
 
-        imgui.Render(pbrCamera, playerCar);
+        if (editorMode)
+        {
+            imgui.Begin();
+            imgui.Render(pbrCamera, playerCar, renderer);
+            imgui.RenderLights(lights);
+            imgui.End();
+        }
 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

@@ -17,6 +17,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 // -------------------------------------------------------
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
+    Input::MouseMoved(xposIn, yposIn);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
@@ -34,6 +35,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     else if (action == GLFW_RELEASE)
     {
         Input::Release(key);
+    }
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (action == GLFW_PRESS)
+    {
+        Input::MousePress(button);
+    }
+    else if (action == GLFW_RELEASE)
+    {
+        Input::MouseRelease(button);
     }
 }
 
@@ -68,6 +81,7 @@ Application::Application()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     // tell GLFW to capture our mouse
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -88,6 +102,14 @@ glm::vec2 Application::GetWindowSize()
     glfwGetFramebufferSize(window, &windowSize.x, &windowSize.y);
 
     return windowSize;
+}
+
+glm::vec2 Application::GetCursorPosition()
+{
+    glm::dvec2 cursorPos{ 0 };
+    glfwGetCursorPos(window, &cursorPos.x, &cursorPos.y);
+
+    return cursorPos;
 }
 
 

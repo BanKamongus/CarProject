@@ -135,8 +135,20 @@ Renderer::Renderer()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+}
 
-    SetupPBR();
+void Renderer::RecompileShaders()
+{
+    m_pbrShader = Shader("Assets/Shaders/2.2.2.pbr.vs", "Assets/Shaders/2.2.2.pbr.fs");
+    m_pbrShader.use();
+    m_pbrShader.setInt("irradianceMap", 0);
+    m_pbrShader.setInt("prefilterMap", 1);
+    m_pbrShader.setInt("brdfLUT", 2);
+    m_pbrShader.setInt("albedoMap", 3);
+    m_pbrShader.setInt("normalMap", 4);
+    m_pbrShader.setInt("metallicMap", 5);
+    m_pbrShader.setInt("roughnessMap", 6);
+    m_pbrShader.setInt("aoMap", 7);
 }
 
 Renderer::~Renderer()
@@ -145,7 +157,7 @@ Renderer::~Renderer()
     glDeleteBuffers(1, &m_planeVBO);
 }
 
-void Renderer::SetupPBR()
+void Renderer::SetupPBR(const std::string& cubeMapPath)
 {
     m_pbrShader.use();
     m_pbrShader.setInt("irradianceMap", 0);
@@ -172,7 +184,7 @@ void Renderer::SetupPBR()
 // ---------------------------------
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
-    float* data = stbi_loadf("Assets/Textures/hdr/sunrise_sky_dome_2k.hdr", &width, &height, &nrComponents, 0);
+    float* data = stbi_loadf(cubeMapPath.c_str(), &width, &height, &nrComponents, 0);
     unsigned int hdrTexture;
     if (data)
     {
@@ -357,17 +369,6 @@ void Renderer::SetupPBR()
     renderQuad();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-    // initialize static shader uniforms before rendering
-    // --------------------------------------------------
-    glm::vec2 windowSize = Application::Get().GetWindowSize();
-
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)windowSize.x / (float)windowSize.y, 0.1f, 100.0f);
-    m_pbrShader.use();
-    m_pbrShader.setMat4("projection", projection);
-    m_backgroundShader.use();
-    m_backgroundShader.setMat4("projection", projection);
 }
 
 void Renderer::SetupDepthMap()

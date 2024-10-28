@@ -4,6 +4,10 @@
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
 #include "Application.h"
+#include "Light.h"
+#include "Renderer.h"
+
+#include <vector>
 
 class Camera;
 class Car;
@@ -14,7 +18,8 @@ public:
 	ImGuiManager();
 	~ImGuiManager();
 
-	void Render(Camera& camera, Car& car);
+	void Render(Camera& camera, Car& car, Renderer& renderer);
+	void RenderLights(std::vector<Light>& lights);
 	void Begin();
 	void End();
 };

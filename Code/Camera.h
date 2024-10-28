@@ -17,6 +17,8 @@ public:
 
 	virtual ~Camera() = default;
 
+	virtual void Update(float dt) {}
+
 	virtual glm::mat4 GetViewMatrix() const
 	{
 		return glm::lookAt(m_position, m_lookAt, glm::vec3(0, 1, 0));
