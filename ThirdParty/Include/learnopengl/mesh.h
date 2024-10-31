@@ -89,12 +89,12 @@ public:
             }
             else if (name == "texture_metallic")
             {
-                metallicMap = roughnessMap = textures[i].id;
+                metallicMap = textures[i].id;
 
             }
             else if (name == "texture_roughness")
             {
-                metallicMap = roughnessMap = textures[i].id;
+                roughnessMap = textures[i].id;
             }
             else if (name == "texture_ao")
             {

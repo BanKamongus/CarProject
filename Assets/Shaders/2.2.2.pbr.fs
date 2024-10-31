@@ -94,9 +94,11 @@ void main()
 {		
     // material properties
     vec3 albedo = pow(texture(albedoMap, TexCoords).rgb, vec3(2.2));
-    float metallic = texture(metallicMap, TexCoords).g;
-    float roughness = texture(roughnessMap, TexCoords).b;
+    float metallic = texture(metallicMap, TexCoords).b;
+    float roughness = texture(roughnessMap, TexCoords).g;
     //float ao = texture(aoMap, TexCoords).r;
+    //metallic = 0.0;
+    //roughness = 1.0;
     float ao = 1.0;
        
     // input lighting data
@@ -171,6 +173,7 @@ void main()
     color = color / (color + vec3(1.0));
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
+
 
     FragColor = vec4(color , 1.0);
 }

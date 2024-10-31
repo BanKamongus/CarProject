@@ -153,7 +153,7 @@ int main()
 {
     Application app;
     Renderer renderer;
-    renderer.SetupPBR("Assets/Textures/hdr/starry_night_sky_dome_2k.hdr");
+    renderer.SetupPBR("Assets/Textures/hdr/mountains_sunset_sky_dome_1k.hdr");
 
     ImGuiManager imgui;
 
@@ -172,14 +172,14 @@ int main()
     // load PBR material textures
     // --------------------------
     
-        /*
+          /*
     albedo = loadTexture("Assets/Textures/rusted_iron/albedo.png");
     normal = loadTexture("Assets/Textures/rusted_iron/normal.png");
     metallic = loadTexture("Assets/Textures/rusted_iron/metallic.png");
     roughness = loadTexture("Assets/Textures/rusted_iron/roughness.png");
     ao = loadTexture("Assets/Textures/rusted_iron/ao.png");
-    
-    
+
+
     albedo = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_Color.png");
     normal = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_NormalGL.png");
     metallic = loadTexture("Assets/Textures/foil/Foil002_1K-PNG_Metalness.png");
@@ -206,8 +206,9 @@ int main()
     // -------------
     glm::vec3 lightPos(0.0f, 10.0f, 2.0f);
 
-    Car playerCar("Assets/Models/car/racer_nowheels.obj", glm::vec3{ 0, 0.5f, 0 }, glm::vec3{ 1.0f });
-    //Car playerCar("Assets/Models/subaru/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.0075f });
+    //Car playerCar("Assets/Models/car/racer_nowheels.obj", glm::vec3{ 0, 0.5f, 0 }, glm::vec3{ 1.0f });
+    Car playerCar("Assets/Models/subaru/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.0075f });
+    //Car playerCar("Assets/Models/dirty/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 1.0f });
 
     //Car pbrCar("Assets/Models/subaru/scene.gltf", glm::vec3{ 0.0f }, glm::vec3{ 1.0f });
     //Car playerCar("Assets/Models/pbr_gun/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.2f });
@@ -225,19 +226,24 @@ int main()
     glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
+    
+
     unsigned int goldAlbedoMap = loadTexture("Assets/Textures/pbr/foil/Foil002_1K-PNG_Color.png");
     unsigned int goldNormalMap = loadTexture("Assets/Textures/pbr/foil/Foil002_1K-PNG_NormalGL.png");
     unsigned int goldMetallicMap = loadTexture("Assets/Textures/pbr/foil/Foil002_1K-PNG_Metalness.png");
     unsigned int goldRoughnessMap = loadTexture("Assets/Textures/pbr/foil/Foil002_1K-PNG_Roughness.png");
     unsigned int goldAOMap = loadTexture("Assets/Textures/pbr/foil/Foil002_1K-PNG_AmbientOcclusion.png");
 
+    
+
     glm::mat4 model = glm::mat4(1.0f);
 
     std::vector<Light> lights {
-        {{-10.0f,  10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}},
-        {{10.0f,  10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}},
-        {{-10.0f, -10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}},
-        {{10.0f, -10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}}
+        {{0.0f,  3.0f, 0.0f}, {300.0f, 300.0f, 300.0f}},
+        //{{-10.0f,  10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}},
+        //{{10.0f,  10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}},
+        //{{-10.0f, -10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}},
+        //{{10.0f, -10.0f, 10.0f}, {300.0f, 300.0f, 300.0f}}
     };
 
     bool editorMode = false;
@@ -287,6 +293,7 @@ int main()
 
         renderer.BeginFrame(*mainCamera);
 
+        
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, goldAlbedoMap);
         glActiveTexture(GL_TEXTURE4);
@@ -297,6 +304,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, goldRoughnessMap);
         glActiveTexture(GL_TEXTURE7);
         glBindTexture(GL_TEXTURE_2D, goldAOMap);
+        
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-3.0, 0.0, 2.0));
@@ -328,7 +336,7 @@ int main()
         }
 
 
-        //renderer.RenderSkybox();
+        renderer.RenderSkybox();
 
         /*
         renderer.RenderDepthMap(lightSpaceMatrix);
