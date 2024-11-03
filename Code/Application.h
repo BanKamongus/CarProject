@@ -25,6 +25,12 @@ public:
     }
 
     glm::vec2 GetWindowSize();
+    glm::vec2 GetCursorPosition();
+
+    void SetCursorEnable(bool value)
+    {
+        glfwSetInputMode(window, GLFW_CURSOR, value ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+    }
 
     GLFWwindow* GetWindow()
     {

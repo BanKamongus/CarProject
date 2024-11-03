@@ -1,18 +1,19 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 #include <glm/gtc/type_ptr.hpp>
+
 #include <learnopengl/shader_m.h>
 #include <learnopengl/model.h>
-#include <vector>
 
 #include "Math.h"
 #include "StaticObject.h"
 #include "Audio.h"
 #include "Input.h"
-#include "CarGhost.h"
 
 class Car
 {
@@ -25,7 +26,6 @@ public:
         , m_forward({ 0.0f, 0.0f, 1.0f })
         , m_rotation{ 0 }
         , m_wheelModel("Assets/Models/car/wheel.obj")
-        , m_ghost(m_model, m_keyframes)
     {
     }
 
@@ -34,26 +34,23 @@ public:
         return m_position;
     }
 
-    bool m_recording = false;
+    void SetPosition(const glm::vec3& position)
+    {
+        m_position = position;
+    }
+
+    glm::vec3 GetScale() const
+    {
+        return m_scale;
+    }
+
+    void SetScale(const glm::vec3& scale)
+    {
+        m_scale = scale;
+    }
 
     void Update(float dt)
     {
-
-        if (Input::GetKeyDown(GLFW_KEY_Q)) {
-            m_position = glm::vec3(800, 15, -550);
-        }
-        if (m_recording)
-            PlaceKeyframes(dt);
-
-        if (Input::GetKeyDown(GLFW_KEY_E) && !m_keyframes.empty())
-        {
-            m_ghost = CarGhost(m_model, m_keyframes);
-            m_keyframes.clear();
-        }
-
-        if (Input::GetKeyDown(GLFW_KEY_K))
-            m_recording = !m_recording;
-
         int accelerationInput = 0;
         int steerInput = 0;
 
@@ -138,10 +135,6 @@ public:
         m_frontWheelsRotation.y = angle;
 
         m_position += m_velocity * dt;
-
-        m_ghost.Update(dt);
-
-        //cout << endl << m_position.x << " " << m_position.z;
     }
 
     bool CheckRayCollisionWithObject(const Ray& ray, std::vector<Triangle>& triangles, glm::vec3& intersectionPoint)
@@ -164,28 +157,24 @@ public:
 
     void CheckCollisions(const std::vector<StaticObject>& objects, float dt)
     {
-        glm::vec3 RayPos = m_position;
-        RayPos.y += 2;
+        Ray carRay{ m_position, glm::vec3(0, -1, 0) };
 
-        Ray carRay{ RayPos, glm::vec3(0, -1, 0) };
-
-        Ray frontRay{ RayPos, glm::vec3(0, -1, 0) };
+        Ray frontRay{ m_position, glm::vec3(0, -1, 0) };
         frontRay.position += m_frontWheelOffset * m_forward;
 
-        Ray backRay{ RayPos, glm::vec3(0, -1, 0) };
+        Ray backRay{ m_position, glm::vec3(0, -1, 0) };
         backRay.position -= m_frontWheelOffset * m_forward;
 
         glm::vec3 right = glm::normalize(glm::cross(m_forward, glm::vec3{ 0.0f, 1.0f, 0.0f }));
 
-        Ray leftRay{ RayPos, glm::vec3(0, -1, 0) };
+        Ray leftRay{ m_position, glm::vec3(0, -1, 0) };
         leftRay.position -= m_sideWheelOffset * right;
 
-        Ray rightRay{ RayPos, glm::vec3(0, -1, 0) };
+        Ray rightRay{ m_position, glm::vec3(0, -1, 0) };
         rightRay.position += m_sideWheelOffset * right;
 
-        for (const auto& object : objects) 
+        for (const auto& object : objects)
         {
-            //return;///////////////////
             auto transformedTriangles = object.GetNearTriangles(m_position, 100.0f);
 
             {
@@ -271,7 +260,9 @@ public:
 
     void Render(Shader& shader)
     {
-        glm::mat4 modelRotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 1.0f, 0));
+        //glm::mat4 modelRotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 1.0f, 0));
+        //glm::mat4 modelRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1, 0, 0));
+        glm::mat4 modelRotation = glm::mat4(1.0f);
 
         glm::vec3 pos = m_position;
         pos.y -= 0.5f;
@@ -289,6 +280,7 @@ public:
             * glm::scale(glm::mat4(1.0f), m_scale);
 
         shader.setMat4("model", model);
+        shader.setMat4("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         m_model.Draw(shader);
 
         glm::vec3 frontWheelPosition = m_forward * m_frontWheelOffset;
@@ -327,8 +319,6 @@ public:
 
         shader.setMat4("model", backrightWheelModel);
         m_wheelModel.Draw(shader);
-
-        m_ghost.Render(shader);
     }
 
     float audioTime = 0;
@@ -371,32 +361,8 @@ public:
         }
     }
 
-    float timeAccumulator = 0.0f;
-    float timeKey = 0.0f;
-
-    void PlaceKeyframes(float dt)
-    {
-        timeAccumulator += dt;
-        timeKey += dt;
-
-        // Check if we have reached the 0.2-second interval
-        if (timeAccumulator > KeyframeScale) {
-            // Create a keyframe with the current position and scale
-            Keyframe newKeyframe(timeKey, m_position, m_rotation, m_scale, m_forward);
-
-            // Add the keyframe to the vector
-            m_keyframes.push_back(newKeyframe);
-
-            // Reset the time accumulator
-            timeAccumulator = 0.0f;
-        }
-    }
-
 private:
     friend class FollowCamera;
-
-    CarGhost m_ghost;
-    std::vector<Keyframe> m_keyframes;
 
     glm::vec3 m_frontWheelsRotation{ 0.0f };
 
@@ -405,13 +371,13 @@ private:
 
     Model m_wheelModel;
 
-    float m_accelerationFactor = 14.0f;
+    float m_accelerationFactor = 12.0f;
     float m_steerFactor = -35.0f;
     float m_steerLerpFactor = 0.06f;
-    float lateral_friction_factor = 3.5f;
-    float backward_friction_factor = 0.21f;
+    float lateral_friction_factor = 3.75f;
+    float backward_friction_factor = 0.22f;
 
-    float m_maxVelocity = 170.0f;
+    float m_maxVelocity = 50.0f;
 
     Model m_model;
     glm::vec3 m_velocity;
