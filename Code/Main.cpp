@@ -1,22 +1,117 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <stb_image.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <learnopengl/shader.h>
-#include <learnopengl/model.h>
-//#include <learnopengl/camera.h>
+#include "BanKEngine.h"
 
 #include "Application.h"
 #include "Car.h"
+#include "_Car.h"
 #include "FollowCamera.h"
 #include "EditorCamera.h"
 #include "Renderer.h"
+ 
 
-#include <iostream>
+
+GameObj* CarOBJ;
+B_Car* CarBehav;
+glm::vec3 Cam_CamPos;
+glm::vec3 Cam_CarPos;
+
+
+unsigned int sphereVAO = 0;
+unsigned int indexCount;
+
+void RenderPbrScene(Shader& shader, Camera& camera);
+
+void renderSphere()
+{
+    if (sphereVAO == 0)
+    {
+        glGenVertexArrays(1, &sphereVAO);
+
+        unsigned int vbo, ebo;
+        glGenBuffers(1, &vbo);
+        glGenBuffers(1, &ebo);
+
+        std::vector<glm::vec3> positions;
+        std::vector<glm::vec2> uv;
+        std::vector<glm::vec3> normals;
+        std::vector<unsigned int> indices; 
+
+        const unsigned int X_SEGMENTS = 64;
+        const unsigned int Y_SEGMENTS = 64;
+        const float PI = 3.14159265359f;
+        for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
+        {
+            for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
+            {
+                float xSegment = (float)x / (float)X_SEGMENTS;
+                float ySegment = (float)y / (float)Y_SEGMENTS;
+                float xPos = std::cos(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+                float yPos = std::cos(ySegment * PI);
+                float zPos = std::sin(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+
+                positions.push_back(glm::vec3(xPos, yPos, zPos));
+                uv.push_back(glm::vec2(xSegment, ySegment));
+                normals.push_back(glm::vec3(xPos, yPos, zPos));
+            }
+        }
+
+        bool oddRow = false;
+        for (unsigned int y = 0; y < Y_SEGMENTS; ++y)
+        {
+            if (!oddRow) // even rows: y == 0, y == 2; and so on
+            {
+                for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
+                {
+                    indices.push_back(y * (X_SEGMENTS + 1) + x);
+                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
+                }
+            }
+            else
+            {
+                for (int x = X_SEGMENTS; x >= 0; --x)
+                {
+                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
+                    indices.push_back(y * (X_SEGMENTS + 1) + x);
+                }
+            }
+            oddRow = !oddRow;
+        }
+        indexCount = static_cast<unsigned int>(indices.size());
+
+        std::vector<float> data;
+        for (unsigned int i = 0; i < positions.size(); ++i)
+        {
+            data.push_back(positions[i].x);
+            data.push_back(positions[i].y);
+            data.push_back(positions[i].z);
+            if (normals.size() > 0)
+            {
+                data.push_back(normals[i].x);
+                data.push_back(normals[i].y);
+                data.push_back(normals[i].z);
+            }
+            if (uv.size() > 0)
+            {
+                data.push_back(uv[i].x);
+                data.push_back(uv[i].y);
+            }
+        }
+        glBindVertexArray(sphereVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+        unsigned int stride = (3 + 2 + 3) * sizeof(float);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
+    }
+
+    glBindVertexArray(sphereVAO);
+    glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
+}
 
 unsigned int sphereVAO = 0;
 unsigned int indexCount;
@@ -207,12 +302,12 @@ int main()
     glm::vec3 lightPos(0.0f, 10.0f, 2.0f);
 
     //Car playerCar("Assets/Models/car/racer_nowheels.obj", glm::vec3{ 0, 0.5f, 0 }, glm::vec3{ 1.0f });
-    Car playerCar("Assets/Models/subaru/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.0075f });
     //Car playerCar("Assets/Models/dirty/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 1.0f });
 
     //Car pbrCar("Assets/Models/subaru/scene.gltf", glm::vec3{ 0.0f }, glm::vec3{ 1.0f });
     //Car playerCar("Assets/Models/pbr_gun/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.2f });
-    FollowCamera followCamera(playerCar);
+
+    FollowCamera_B followCamera(Cam_CarPos,Cam_CamPos); 
 
     std::vector<StaticObject> objects{
        //{ "Assets/Models/moscow/moscow.obj", { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{80.0f} }
@@ -250,8 +345,26 @@ int main()
 
     EditorCamera editorCamera;
 
-    // render loop
-    // -----------
+
+    //Bank
+    Model Model_Car("Assets/Models/subaru/scene.gltf");
+    Model Model_Racetrack("Assets/Models/Racetrack/Racetrack.obj");
+
+    CarOBJ = GameObj::Create();
+    CarBehav = CarOBJ->AddComponent(new B_Car);
+    CarBehav->Model_BODY = &Model_Car;
+    //CarOBJ->Transform.wPosition = glm::vec3(3.4, -9, 76);
+    CarOBJ->Transform.wPosition = glm::vec3(0, 0, 0);
+    CarOBJ->Transform.wRotation = glm::vec3(0, 0, 0);
+    CarOBJ->Transform.wScale = glm::vec3(1, 1, 1) ;
+
+    GameObj* OBJ_Racetrack = GameObj::Create(); 
+    OBJ_Racetrack->Transform.wPosition = glm::vec3(0, -10, 0);
+    OBJ_Racetrack->Transform.wRotation = glm::vec3(0, 0, 0);
+    OBJ_Racetrack->Transform.wScale = glm::vec3(30.0f, 30.0f, 30.0f) * 2.5f;
+
+    Car_Raycast_Init(OBJ_Racetrack, CarOBJ, Model_Racetrack);
+
     while (!app.WindowShouldClose())
     {
         // per-frame time logic
@@ -274,8 +387,9 @@ int main()
             mainCamera = &editorCamera;
 
         //glm::mat4 projection = pbrCamera.GetProjectionMatrix();
+        //glm::mat4 projection = mainCamera->GetProjectionMatrix();
         glm::mat4 projection = mainCamera->GetProjectionMatrix();
-        renderer.m_pbrShader.use();
+        renderer.m_pbrShader.use(); 
         renderer.m_pbrShader.setMat4("projection", projection);
         renderer.m_backgroundShader.use();
         renderer.m_backgroundShader.setMat4("projection", projection);
@@ -283,9 +397,9 @@ int main()
 
         if (!editorMode)
         {
-            playerCar.Update(deltaTime);
-            //playerCar.AudioUpdate(audio, deltaTime, window);
-            playerCar.CheckCollisions(objects, deltaTime);
+            //playerCar.Update(deltaTime);
+            ////playerCar.AudioUpdate(audio, deltaTime, window);
+            //playerCar.CheckCollisions(objects, deltaTime);
         }
 
         mainCamera->Update(deltaTime);
@@ -305,6 +419,74 @@ int main()
         glActiveTexture(GL_TEXTURE7);
         glBindTexture(GL_TEXTURE_2D, goldAOMap);
         
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-3.0, 0.0, 2.0));
+
+        renderer.m_pbrShader.setMat4("model", model);
+        renderer.m_pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        renderSphere();
+
+        renderScene(renderer, renderer.m_pbrShader);
+
+        //playerCar.Render(renderer.m_pbrShader);
+
+
+
+
+
+
+        ////   BanK
+        ///////////////////////////
+        BanKEngine::All_Update();
+        CarBehav->Render(renderer.m_pbrShader);
+        Cam_CarPos = CarBehav->CameraLookat->Transform.getWorldPosition();
+        Cam_CamPos = CarBehav->CameraHolder->Transform.getWorldPosition();
+
+        renderer.m_pbrShader.setMat4("model", OBJ_Racetrack->Transform.modelMatrix);
+        renderer.m_pbrShader.setMat4("normalMatrix", glm::transpose(glm::inverse(glm::mat3(OBJ_Racetrack->Transform.modelMatrix))));
+        Model_Racetrack.Draw(renderer.m_pbrShader);
+
+        Car_Raycast_Update(CarOBJ, CarBehav);
+
+        for (B_CarGhost* Each : B_CarGhostsss) {
+            Each->Render(renderer.m_pbrShader);
+        }
+        if (Input::GetKeyDown(GLFW_KEY_C)) {
+            B_CarGhostsss.clear();
+        }
+
+
+
+
+
+
+        for (auto& obj : objects)
+            obj.Render(renderer.m_pbrShader);
+
+        for (unsigned int i = 0; i < lights.size(); ++i)
+        {
+            glm::vec3 newPos = lights[i].position + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
+            newPos = lights[i].position;
+            renderer.m_pbrShader.setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
+            renderer.m_pbrShader.setVec3("lightColors[" + std::to_string(i) + "]", lights[i].color);
+
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, newPos);
+            model = glm::scale(model, glm::vec3(0.5f));
+            renderer.m_pbrShader.setMat4("model", model);
+            renderer.m_pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+            renderSphere();
+        }
+
+
+        renderer.RenderSkybox();
+
+
+
+
+
+/*
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-3.0, 0.0, 2.0));
@@ -338,6 +520,7 @@ int main()
 
         renderer.RenderSkybox();
 
+*/
         /*
         renderer.RenderDepthMap(lightSpaceMatrix);
         glActiveTexture(GL_TEXTURE0);
@@ -378,7 +561,7 @@ int main()
         if (editorMode)
         {
             imgui.Begin();
-            imgui.Render(pbrCamera, playerCar, renderer);
+            //imgui.Render(pbrCamera, playerCar, renderer);
             imgui.RenderLights(lights);
             imgui.End();
         }
