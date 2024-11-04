@@ -10,14 +10,9 @@ in VS_OUT {
 
 uniform sampler2D diffuseTexture;
 uniform sampler2D shadowMap;
-uniform sampler2D texture_metallic1;
-uniform sampler2D texture_roughness1;
 
 uniform vec3 lightPosition;
 uniform vec3 viewPosition;
-
-uniform vec3 lightPositions[4];
-uniform vec3 lightColors[4];
 
 float ShadowCalculation(vec4 fragPosLightSpace)
 {
