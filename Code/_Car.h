@@ -538,6 +538,18 @@ void Car_Raycast_Update(GameObj* CarOBJ, B_Car* CarBehav) {
     rayColl_L.Direction = Vec3_LFT + Vec3_Fwd * 1.0f + Vec3_Up * 0.16f;
     RayIntersectSceneOptimized(rayColl_L, Triangle4Cast, rayColl_L_Hitpoint);
 
+    B_Ray rayColl_R_Rear;
+    glm::vec3 rayColl_R_Rear_Hitpoint;
+    rayColl_R_Rear.Origin = CarBehav->rayColl_Ride->Transform.getWorldPosition();
+    rayColl_R_Rear.Direction = Vec3_RHT + Vec3_Back * 1.0f + Vec3_Up * 0.16f;
+    RayIntersectSceneOptimized(rayColl_R_Rear, Triangle4Cast, rayColl_R_Rear_Hitpoint);
+
+    B_Ray rayColl_L_Rear;
+    glm::vec3 rayColl_L_Rear_Hitpoint;
+    rayColl_L_Rear.Origin = CarBehav->rayColl_Ride->Transform.getWorldPosition();
+    rayColl_L_Rear.Direction = Vec3_LFT + Vec3_Back * 1.0f + Vec3_Up * 0.16f;
+    RayIntersectSceneOptimized(rayColl_L_Rear, Triangle4Cast, rayColl_L_Rear_Hitpoint);
+
 
 
 
@@ -577,6 +589,17 @@ void Car_Raycast_Update(GameObj* CarOBJ, B_Car* CarBehav) {
             CarOBJ->Transform.wPosition -= rayColl_L.Direction * 0.1f;
             CarBehav->BackWheel.AngularVelocity *= 0.9f;
             CarBehav->FrontWheel.Angle -= 12;
+        }
+        
+        if (glm::distance(rayColl_R_Rear_Hitpoint, CarOBJ->Transform.wPosition) < 3.2f) {
+            CarOBJ->Transform.wPosition -= rayColl_R_Rear.Direction * 0.1f;
+            CarBehav->BackWheel.AngularVelocity *= 0.9f;
+            CarBehav->FrontWheel.Angle -= 12;
+        }
+        else if (glm::distance(rayColl_L_Rear_Hitpoint, CarOBJ->Transform.wPosition) < 3.2f) {
+            CarOBJ->Transform.wPosition -= rayColl_L_Rear.Direction * 0.1f;
+            CarBehav->BackWheel.AngularVelocity *= 0.9f;
+            CarBehav->FrontWheel.Angle += 12;
         }
 
 

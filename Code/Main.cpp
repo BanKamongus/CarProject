@@ -261,9 +261,8 @@ int main()
 
     GameObj* OBJ_Racetrack = GameObj::Create(); 
     OBJ_Racetrack->Transform.wPosition = glm::vec3(0, -10, 0);
-    OBJ_Racetrack->Transform.wRotation = glm::vec3(0, 0, 0);
+    OBJ_Racetrack->Transform.wRotation = glm::vec3(0, 0.1, 0);
     OBJ_Racetrack->Transform.wScale = glm::vec3(30.0f, 30.0f, 30.0f) * 2.5f;
-
     Car_Raycast_Init(OBJ_Racetrack, CarOBJ, Model_Racetrack);
 
 
