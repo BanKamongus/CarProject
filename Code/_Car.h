@@ -209,6 +209,7 @@ public:
         rayColl_Ride = BODY_XZ->CreateChild();
         rayColl_Ride->Transform.wPosition = glm::vec3(0, 0.5, 0);
 
+
     }
 
     void Update() {
@@ -601,6 +602,7 @@ void Car_Raycast_Update(GameObj* CarOBJ, B_Car* CarBehav) {
             CarBehav->BackWheel.AngularVelocity *= 0.9f;
             CarBehav->FrontWheel.Angle += 12;
         }
+
 
 
     }
