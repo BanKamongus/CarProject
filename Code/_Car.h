@@ -2,8 +2,8 @@
 #include "Renderer.h"
 #include "Input.h"
 
-
-const float KeyframeAwait = 0.005f;
+bool Safe = false;
+const float KeyframeAwait = 0.05f;
 class Keyframe {
 public:
     float time;
@@ -153,6 +153,7 @@ public:
         float DecelSpeed = 0.32f;
         float Acceleration = 32;
     }BackWheel;
+    float BODYangle = 0;
 
     void Init() {
 
@@ -195,20 +196,19 @@ public:
 
 
         RayDown_Front = BODY_XZ->CreateChild();
-        RayDown_Front->Transform.wPosition = glm::vec3(0, 0.5, 1);
+        RayDown_Front->Transform.wPosition = glm::vec3(0, 1, 1);
 
         RayDown_Back = BODY_XZ->CreateChild();
-        RayDown_Back->Transform.wPosition = glm::vec3(0, 0.5, -1);
+        RayDown_Back->Transform.wPosition = glm::vec3(0, 1, -1);
 
         RayDown_L = BODY_XZ->CreateChild();
-        RayDown_L->Transform.wPosition = glm::vec3(-1, 0.5, 0);
+        RayDown_L->Transform.wPosition = glm::vec3(-1, 1, 0);
 
         RayDown_R = BODY_XZ->CreateChild();
-        RayDown_R->Transform.wPosition = glm::vec3(1, 0.5, 0);
-
+        RayDown_R->Transform.wPosition = glm::vec3(1, 1, 0);
+         
         rayColl_Ride = BODY_XZ->CreateChild();
         rayColl_Ride->Transform.wPosition = glm::vec3(0, 0.5, 0);
-
 
     }
 
@@ -221,11 +221,9 @@ public:
             BODY_XZ->Transform.wRotation = glm::vec3(0, 0, 0);
 
         }
-        if (Input::GetKey(GLFW_KEY_Y)) {
-            DoRaycast = true;
-        }
-        if (Input::GetKey(GLFW_KEY_T)) {
-            DoRaycast = false;
+
+        if (Input::GetKeyDown(GLFW_KEY_T)) {
+            DoRaycast = !DoRaycast;
         }
          
         //cout << endl << GameObject->Transform.wPosition.x << " " << GameObject->Transform.wPosition.y << " " << GameObject->Transform.wPosition.z << " ";
@@ -243,11 +241,11 @@ public:
             BackWheel.AngularVelocity = B_lerp(BackWheel.AngularVelocity, 0, Time.Deltatime * BackWheel.DecelSpeed);
         }
         BackWheel.AngularVelocity = B_clamp(BackWheel.AngularVelocity, -BackWheel.AngularVelocityMax, BackWheel.AngularVelocityMax);
-        GameObject->Transform.wPosition += BODY_XZ->Transform.getForwardVector() * (Time.Deltatime * BackWheel.AngularVelocity);
+        if (Safe) { GameObject->Transform.wPosition += BODY_XZ->Transform.getForwardVector() * (Time.Deltatime * BackWheel.AngularVelocity); }
 
 
 
-        if (Input::GetKey(GLFW_KEY_E)) {
+        if (Input::GetKey(GLFW_KEY_O)) {
             GameObject->Transform.wPosition += BODY_XZ->Transform.getUpVector() * (Time.Deltatime * 16);
         }
         else if (Input::GetKey(GLFW_KEY_Q)) {
@@ -262,21 +260,28 @@ public:
 
 
 
-
-        float HandlingFactor = B_clamp(B_normalize(BackWheel.AngularVelocity, BackWheel.AngularVelocityMax * 1.5f, 20), 0, 1);
+        float maxSpeed2damp = BackWheel.AngularVelocityMax * 1.2f;//Low Speed here
+        float minSpeed2damp = 20;//High Speed here
+        float HandlingFactor = B_clamp(B_normalize(BackWheel.AngularVelocity, maxSpeed2damp, minSpeed2damp), 0, 1);
         if (Input::GetKey(GLFW_KEY_A)) {
-            FrontWheel.Angle = B_lerp(FrontWheel.Angle, FrontWheel.AngleMax, Time.Deltatime * FrontWheel.AngleHandling * HandlingFactor);;
+            FrontWheel.Angle = B_lerp(FrontWheel.Angle, FrontWheel.AngleMax, Time.Deltatime * FrontWheel.AngleHandling * HandlingFactor);
+            BODYangle = B_lerp(BODYangle, FrontWheel.AngleMax, Time.Deltatime * FrontWheel.AngleHandling * 0.9f);
         }
         else if (Input::GetKey(GLFW_KEY_D)) {
-            FrontWheel.Angle = B_lerp(FrontWheel.Angle, -FrontWheel.AngleMax, Time.Deltatime * FrontWheel.AngleHandling * HandlingFactor);;
+            FrontWheel.Angle = B_lerp(FrontWheel.Angle, -FrontWheel.AngleMax, Time.Deltatime * FrontWheel.AngleHandling * HandlingFactor);
+            BODYangle = B_lerp(BODYangle, -FrontWheel.AngleMax, Time.Deltatime * FrontWheel.AngleHandling * 0.9f);
         }
         else {
             FrontWheel.Angle = B_lerp(FrontWheel.Angle, 0, Time.Deltatime * FrontWheel.AngleHandling * 1.5f * HandlingFactor);
+            BODYangle = B_lerp(BODYangle, 0, Time.Deltatime * FrontWheel.AngleHandling * 0.5f);
         }
 
         float TurnFactor = B_clamp(B_normalize(BackWheel.AngularVelocity, 0, 16), -1, 1);
         float Angle = FrontWheel.Angle * TurnFactor * Time.Deltatime;
         GameObject->Transform.wRotation.y += Angle;
+
+        float TurnFactor2 = B_clamp(B_normalize(BackWheel.AngularVelocity, 0, 40), -1, 1);
+        BODY->Transform.wRotation.y = B_lerp(BODY->Transform.wRotation.y,B_clamp(TurnFactor2*BODYangle*0.2f,-70,70) , Time.Deltatime*8);
 
         //GameObject->Transform.modelMatrix = glm::rotate(GameObject->Transform.modelMatrix, Angle, BODY_XZ->Transform.getUpVector());
 
@@ -342,11 +347,13 @@ public:
 
 
 
-                struct RECm {
+                class RECm { public:
                     vector<Keyframe> keyframes;
                     float TimerPlace = 0;
                     float TimerRecord = 0;
                     bool isRecording = false;
+                    Transform Temp_Transform;
+                    RECm() { keyframes.reserve(9999); }
                 }RECm;
                 void RecordCtrl() {
 
@@ -360,7 +367,7 @@ public:
                         else
                         {
                             cout << "\nREC started";
-                        }
+                        } 
 
                         RECm.isRecording = !RECm.isRecording;
                         RECm.TimerRecord = 0;
@@ -370,14 +377,13 @@ public:
                     if (RECm.isRecording) {
 
                         RECm.TimerRecord += Time.Deltatime;
-                        //cout << endl << RECm.TimerRecord;
+                        cout << endl << RECm.TimerRecord;
                             if (RECm.TimerPlace > KeyframeAwait) {
-                                Transform T;
-                                T.wPosition = GameObject->Transform.wPosition;
-                                T.wScale = GameObject->Transform.wScale;
-                                T.wRotation = BODY_XZ->Transform.getWorldRotation();
+                                RECm.Temp_Transform.wPosition = GameObject->Transform.wPosition;
+                                RECm.Temp_Transform.wScale = GameObject->Transform.wScale;
+                                RECm.Temp_Transform.wRotation = BODY_XZ->Transform.getWorldRotation();
 
-                                RECm.keyframes.push_back(Keyframe(RECm.TimerRecord, T));
+                                RECm.keyframes.push_back(Keyframe(RECm.TimerRecord, RECm.Temp_Transform));
                                 RECm.TimerPlace = 0;
                             }
                             else
@@ -468,7 +474,13 @@ void Car_Raycast_Init(GameObj* GameObject,GameObj* CarOBJ, Model mModel) {
 
 
 
+bool inFloatRange(float value) {
+    // Check if the value is between the threshold where scientific notation is typically used
+    return (std::abs(value) >= 1e-4f && std::abs(value) <= 1e6f);
+}
 
+float TargetY_FB = 0;
+float TargetY_LR = 0;
 
 void Car_Raycast_Update(GameObj* CarOBJ, B_Car* CarBehav) {
 
@@ -573,36 +585,64 @@ void Car_Raycast_Update(GameObj* CarOBJ, B_Car* CarBehav) {
     //HitlocationL->Transform.wPosition = rayFront_Hitpoint;
     if (DoRaycast && HIT) {
 
+        Safe = false;
+        float Count = 0;
+        int Count_FB = 0;
+        int Count_LR = 0;
+        float TargetY = 0;
+        if (inFloatRange(rayFront_Hitpoint.y)) {
+            TargetY += rayFront_Hitpoint.y;
+            Count++; Count_FB++;
+        }
+        if (inFloatRange(rayBack_Hitpoint.y)) {
+            TargetY += rayBack_Hitpoint.y;
+            Count++; Count_FB++;
+        }
+        if (inFloatRange(rayRight_Hitpoint.y)) {
+            TargetY += rayRight_Hitpoint.y;
+            Count++; Count_LR++;
+        }
+        if (inFloatRange(rayLeft_Hitpoint.y)) {
+            TargetY += rayLeft_Hitpoint.y;
+            Count++; Count_LR++;
+        }
 
-        CarOBJ->Transform.wPosition = 0.25f * (rayFront_Hitpoint + rayBack_Hitpoint + rayRight_Hitpoint + rayLeft_Hitpoint);
-        CarBehav->BODY_XZ->Transform.wRotation.x += x_yDiff * 20.5f;
-        CarBehav->BODY_XZ->Transform.wRotation.z -= z_yDiff * 20.5f;
+                if (Count_FB >= 2) {
+                    CarBehav->BODY_XZ->Transform.wRotation.x += x_yDiff * 1.9f;
+                }
+                if (Count_LR >= 2) {
+                    CarBehav->BODY_XZ->Transform.wRotation.z -= z_yDiff * 1.9f;
+                }      
+                if (Count > 0) {
+                    Safe = true;
+                    TargetY /= Count;
+                    CarOBJ->Transform.wPosition.y = B_lerp(CarOBJ->Transform.wPosition.y, TargetY, Time.Deltatime * 50);
+                }
 
 
         //Hitlocation->Transform.wPosition = rayColl_R_Hitpoint;
         //HitlocationL->Transform.wPosition = rayColl_L_Hitpoint;
-        if (glm::distance(rayColl_R_Hitpoint, CarOBJ->Transform.wPosition) < 3.2f) {
-            CarOBJ->Transform.wPosition -= rayColl_R.Direction * 0.1f;
+        if (glm::distance(rayColl_R_Hitpoint, CarOBJ->Transform.wPosition) < 3) {
+            CarOBJ->Transform.wPosition -= rayColl_R.Direction * 0.05f;
             CarBehav->BackWheel.AngularVelocity *= 0.9f;
             CarBehav->FrontWheel.Angle += 12;
         }
-        else if (glm::distance(rayColl_L_Hitpoint, CarOBJ->Transform.wPosition) < 3.2f) {
-            CarOBJ->Transform.wPosition -= rayColl_L.Direction * 0.1f;
+        else if (glm::distance(rayColl_L_Hitpoint, CarOBJ->Transform.wPosition) < 3) {
+            CarOBJ->Transform.wPosition -= rayColl_L.Direction * 0.05f;
             CarBehav->BackWheel.AngularVelocity *= 0.9f;
             CarBehav->FrontWheel.Angle -= 12;
         }
         
-        if (glm::distance(rayColl_R_Rear_Hitpoint, CarOBJ->Transform.wPosition) < 3.2f) {
-            CarOBJ->Transform.wPosition -= rayColl_R_Rear.Direction * 0.1f;
+        if (glm::distance(rayColl_R_Rear_Hitpoint, CarOBJ->Transform.wPosition) < 3) {
+            CarOBJ->Transform.wPosition -= rayColl_R_Rear.Direction * 0.05f;
             CarBehav->BackWheel.AngularVelocity *= 0.9f;
             CarBehav->FrontWheel.Angle -= 12;
         }
-        else if (glm::distance(rayColl_L_Rear_Hitpoint, CarOBJ->Transform.wPosition) < 3.2f) {
-            CarOBJ->Transform.wPosition -= rayColl_L_Rear.Direction * 0.1f;
+        else if (glm::distance(rayColl_L_Rear_Hitpoint, CarOBJ->Transform.wPosition) < 3) {
+            CarOBJ->Transform.wPosition -= rayColl_L_Rear.Direction * 0.05f;
             CarBehav->BackWheel.AngularVelocity *= 0.9f;
             CarBehav->FrontWheel.Angle += 12;
         }
-
 
 
     }
