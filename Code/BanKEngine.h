@@ -8,7 +8,8 @@ const float Migrate_Scale = 0.007f;
 namespace BanKEngine {
 
 	//glDisable(GL_DEPTH_TEST); for 2D
-	void Init(int MeshInit_) { 
+	void Init() { 
+		sGameObjs.reserve(999);
 	/*	BanKEngine::GlfwGlad::Init();
 		B_Textures::Init();
 		B_Shaders::Init();
@@ -49,8 +50,14 @@ namespace BanKEngine {
 		}
 
 		for (Transform* pInst : sTransforms) {
-			//pInst->modelMatrix_Update2D();
-			pInst->modelMatrix_Update3D();
+			if (!pInst->Parent) {
+				pInst->modelMatrix_Update3D();
+			}
+		}
+		for (Transform* pInst : sTransforms) {
+			if (pInst->Parent) {
+				pInst->modelMatrix_Update3D();
+			}
 		}
 
 		//for (Renderer* pInst : sRenderers) {
