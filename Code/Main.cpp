@@ -248,13 +248,13 @@ int main()
 
 
     //Bank
-    Model Model_Car("Assets/Models/subaru/scene.gltf");
+    BanKEngine::Init();
+    CarModels::init();
     Model Model_Racetrack("Assets/Models/Racetrack/Racetrack.obj");
     Model Model_RacetrackONLY("Assets/Models/Racetrack/RacetrackONLY.obj");
 
     CarOBJ = GameObj::Create();
     CarBehav = CarOBJ->AddComponent(new B_Car);
-    CarBehav->Model_BODY = &Model_Car;
     //CarOBJ->Transform.wPosition = glm::vec3(3.4, -9, 76);
     CarOBJ->Transform.wPosition = glm::vec3(0, 0, 0);
     CarOBJ->Transform.wRotation = glm::vec3(0, 0, 0);
