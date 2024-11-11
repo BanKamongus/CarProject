@@ -73,6 +73,7 @@ public:
         unsigned int metallicMap = 0;
         unsigned int roughnessMap = 0;
         unsigned int aoMap = 0;
+        unsigned int emissiveMap = 0;
  
         for (unsigned int i = 0; i < textures.size(); i++)
         {
@@ -99,6 +100,10 @@ public:
             else if (name == "texture_ao")
             {
                 aoMap = textures[i].id;
+            }
+            else if (name == "texture_emissive")
+            {
+                emissiveMap = textures[i].id;
             }
 
             /*
@@ -128,11 +133,15 @@ public:
             */
         }
 
-        albedoMap       = albedoMap != 0      ? albedoMap     : defaultMap;
-        normalMap       = normalMap != 0      ? normalMap     : defaultMap;
-        metallicMap     = metallicMap != 0    ? metallicMap   : defaultMap;
-        roughnessMap    = roughnessMap != 0   ? roughnessMap  : defaultMap;
-        aoMap           = aoMap != 0          ? aoMap         : defaultMap;
+        albedoMap       = albedoMap != 0    ? albedoMap     : defaultMap;
+        normalMap       = normalMap != 0    ? normalMap     : defaultMap;
+        metallicMap     = metallicMap != 0  ? metallicMap   : defaultMap;
+        roughnessMap    = roughnessMap != 0 ? roughnessMap  : defaultMap;
+        aoMap           = aoMap != 0        ? aoMap         : defaultMap;
+        //emissiveMap     = emissiveMap != 0  ? emissiveMap   : defaultMap;
+
+        shader.setBool("useEmissive", emissiveMap != 0);
+
 
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, albedoMap);
@@ -144,6 +153,8 @@ public:
         glBindTexture(GL_TEXTURE_2D, roughnessMap);
         glActiveTexture(GL_TEXTURE7);
         glBindTexture(GL_TEXTURE_2D, aoMap);
+        glActiveTexture(GL_TEXTURE8);
+        glBindTexture(GL_TEXTURE_2D, emissiveMap);
         
         // draw mesh
         glBindVertexArray(VAO);

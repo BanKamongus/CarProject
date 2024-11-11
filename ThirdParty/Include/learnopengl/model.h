@@ -192,6 +192,11 @@ private:
         vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
         textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
 
+        vector<Texture> emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "texture_emissive");
+        textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
+
+
+
         /*
         aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE);
         aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_SHININESS); // use specular as fallback
@@ -214,7 +219,6 @@ private:
         std::cout << "Shininess: " << material->GetTextureCount(aiTextureType_SHININESS) << std::endl;
         std::cout << "Ambient: " << material->GetTextureCount(aiTextureType_AMBIENT) << std::endl;
         std::cout << "Lightmap: " << material->GetTextureCount(aiTextureType_LIGHTMAP) << std::endl;
-        std::cout << "Emissive: " << material->GetTextureCount(aiTextureType_EMISSIVE) << std::endl;
 
 
         std::cout << "PBR\n";

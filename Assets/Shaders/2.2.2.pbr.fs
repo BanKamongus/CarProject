@@ -10,6 +10,7 @@ uniform sampler2D normalMap;
 uniform sampler2D metallicMap;
 uniform sampler2D roughnessMap;
 uniform sampler2D aoMap;
+uniform sampler2D emissiveMap;
 
 // IBL
 uniform samplerCube irradianceMap;
@@ -21,6 +22,7 @@ uniform vec3 lightPositions[4];
 uniform vec3 lightColors[4];
 
 uniform vec3 camPos;
+uniform bool useEmissive;
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
@@ -94,11 +96,8 @@ void main()
 {		
     // material properties
     vec3 albedo = pow(texture(albedoMap, TexCoords).rgb, vec3(2.2));
-    float metallic = texture(metallicMap, TexCoords).b;
-    float roughness = texture(roughnessMap, TexCoords).g;
-    //float ao = texture(aoMap, TexCoords).r;
-    //metallic = 0.0;
-    //roughness = 1.0;
+    float metallic = texture(metallicMap, TexCoords).g;
+    float roughness = texture(roughnessMap, TexCoords).b;
     float ao = 1.0;
        
     // input lighting data
@@ -169,11 +168,18 @@ void main()
     
     vec3 color = ambient + Lo;
 
+    if (useEmissive)
+    {
+        vec3 emissiveColor = texture(emissiveMap, TexCoords).rgb * 2.0f;
+        color += emissiveColor;
+    }
+
     // HDR tonemapping
     color = color / (color + vec3(1.0));
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
 
+    //color = texture(albedoMap, TexCoords).rgb;
 
     FragColor = vec4(color , 1.0);
 }
