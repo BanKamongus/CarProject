@@ -208,7 +208,7 @@ int main()
 
     //Car pbrCar("Assets/Models/subaru/scene.gltf", glm::vec3{ 0.0f }, glm::vec3{ 1.0f });
     //Car playerCar("Assets/Models/pbr_gun/scene.gltf", glm::vec3{ 0 }, glm::vec3{ 0.2f });
-    FollowCamera_B followCamera(Cam_CarPos,Cam_CamPos); 
+
 
     std::vector<StaticObject> objects{
        //{ "Assets/Models/moscow/moscow.obj", { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f}, glm::vec3{80.0f} }
@@ -266,6 +266,7 @@ int main()
     OBJ_Racetrack->Transform.wScale = glm::vec3(30.0f, 30.0f, 30.0f) * 2.5f;
 
     Car_Raycast_Init(OBJ_Racetrack, CarOBJ, Model_RacetrackONLY);
+    FollowCamera_B followCamera(*CarBehav);
 
 
     while (!app.WindowShouldClose())
