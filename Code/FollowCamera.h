@@ -99,7 +99,7 @@ public:
 	virtual glm::mat4 GetProjectionMatrix() const override
 	{
 		glm::vec2 windowSize = Application::Get().GetWindowSize();
-		return glm::perspective(glm::radians(m_zoom), (float)windowSize.x / (float)windowSize.y, 0.1f, 1234567.0f);
+		return glm::perspective(glm::radians(m_zoom), (float)windowSize.x / (float)windowSize.y, 0.1f, 12345.0f);
 	}
 
 	float GetZoom() const
