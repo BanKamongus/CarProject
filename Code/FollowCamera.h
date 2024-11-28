@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Application.h"
 #include "Input.h"
+#include "_Car.h"
 
 class FollowCamera : public Camera
 {
@@ -76,25 +77,29 @@ class FollowCamera_B : public Camera
 public:
 	bool isFollowView = true;
 
-	FollowCamera_B(glm::vec3& CarPos, glm::vec3& CamPos)
-		: m_targetCarPos(CarPos), m_targetPosition(CamPos)
+    FollowCamera_B(B_Car& car)
+        : MyCar(car)
 	{
 	}
 
-	void Update(float dt)
+	void Update(float dt) 
 	{
-        m_position = m_targetPosition;
+        m_position = MyCar.CameraHolder->Transform.getWorldPosition();
 	}
 
 	virtual glm::mat4 GetViewMatrix() const override
 	{
-		return glm::lookAt(m_position, m_targetCarPos, glm::vec3(0, 1, 0));
+		//return glm::lookAt(m_position, MyCar.CameraLookat->Transform.getWorldPosition(), glm::vec3(0, 1, 0));
+
+        glm::vec3 cameraPosition = m_position;
+        glm::vec3 cameraOrientation = MyCar.CameraHolder->Transform.getWorldRotation();
+        return glm::lookAt(cameraPosition, MyCar.CameraLookat->Transform.getWorldPosition(), MyCar.CameraHolder->Transform.getUpVector());
 	}
 
 	virtual glm::mat4 GetProjectionMatrix() const override
 	{
 		glm::vec2 windowSize = Application::Get().GetWindowSize();
-		return glm::perspective(glm::radians(m_zoom), (float)windowSize.x / (float)windowSize.y, 0.1f, 1234567.0f);
+		return glm::perspective(glm::radians(m_zoom), (float)windowSize.x / (float)windowSize.y, 0.1f, 12345.0f);
 	}
 
 	float GetZoom() const
@@ -109,8 +114,7 @@ private:
 	float m_cameraDistance = 4.25f;
 
 	float theta = 30.0f;
-    glm::vec3& m_targetCarPos;
-	glm::vec3& m_targetPosition;
+    B_Car& MyCar;
 	float m_zoom = 60.0f;
 };
 

@@ -1,3 +1,4 @@
+#pragma once
 #include "BanKEngine.h"
 #include "Renderer.h"
 #include "Input.h"
@@ -258,6 +259,7 @@ public:
         BODY_XZ->Transform.wScale = glm::vec3(1, 1, 1);
 
         BODY = BODY_XZ->CreateChild();
+        BODY->Transform.wPosition = glm::vec3(0, 0.072, 0);
 
         GameObj* FrontWheelOBJ;
         FrontWheelOBJ = BODY->CreateChild();
@@ -349,7 +351,7 @@ public:
 
 
 
-        float maxSpeed2damp = BackWheel.AngularVelocityMax * 1.16f;//Low handling here
+        float maxSpeed2damp = BackWheel.AngularVelocityMax * 1.19f;//Low handling here
         float minSpeed2damp = 0;//High handling here
         float HandlingFactor = B_clamp(B_normalize(BackWheel.AngularVelocity, maxSpeed2damp, minSpeed2damp), 0, 1);
         if (Input::GetKey(GLFW_KEY_A)) {
@@ -364,7 +366,7 @@ public:
         }
         else {
             FrontWheel.AngleTrue = B_lerp(FrontWheel.AngleTrue, 0, Time.Deltatime * FrontWheel.AngleHandling * 0.8f);
-            FrontWheel.Angle = B_lerp(FrontWheel.Angle, 0, Time.Deltatime * FrontWheel.AngleHandling * 1.5f * HandlingFactor);
+            FrontWheel.Angle = B_lerp(FrontWheel.Angle, 0, Time.Deltatime * FrontWheel.AngleHandling * 2 * HandlingFactor);
             BODYangle = B_lerp(BODYangle, 0, Time.Deltatime * FrontWheel.AngleHandling * 0.32f);
         }
 
