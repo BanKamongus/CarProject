@@ -149,6 +149,7 @@ void Renderer::RecompileShaders()
     m_pbrShader.setInt("metallicMap", 5);
     m_pbrShader.setInt("roughnessMap", 6);
     m_pbrShader.setInt("aoMap", 7);
+    m_pbrShader.setInt("emissiveMap", 8);
 }
 
 Renderer::~Renderer()
@@ -168,6 +169,7 @@ void Renderer::SetupPBR(const std::string& cubeMapPath)
     m_pbrShader.setInt("metallicMap", 5);
     m_pbrShader.setInt("roughnessMap", 6);
     m_pbrShader.setInt("aoMap", 7);
+    m_pbrShader.setInt("emissiveMap", 8);
 
     m_backgroundShader.use();
     m_backgroundShader.setInt("environmentMap", 0);

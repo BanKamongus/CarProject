@@ -285,6 +285,11 @@ int main()
             app.SetCursorEnable(editorMode);
         }
 
+        BanKEngine::All_Update();
+        Car_Raycast_Update(CarOBJ, CarBehav);
+        Cam_CarPos = CarBehav->CameraLookat->Transform.getWorldPosition();
+        Cam_CamPos = CarBehav->CameraHolder->Transform.getWorldPosition();
+
         Camera* mainCamera = &followCamera;
 
         if (editorMode)
@@ -338,20 +343,12 @@ int main()
 
 
 
-
-
-        ////   BanK
-        ///////////////////////////
-        BanKEngine::All_Update();
         CarBehav->Render(renderer.m_pbrShader);
-        Cam_CarPos = CarBehav->CameraLookat->Transform.getWorldPosition();
-        Cam_CamPos = CarBehav->CameraHolder->Transform.getWorldPosition();
 
         renderer.m_pbrShader.setMat4("model", OBJ_Racetrack->Transform.modelMatrix);
         renderer.m_pbrShader.setMat4("normalMatrix", glm::transpose(glm::inverse(glm::mat3(OBJ_Racetrack->Transform.modelMatrix))));
         Model_Racetrack.Draw(renderer.m_pbrShader);
 
-        Car_Raycast_Update(CarOBJ, CarBehav);
 
         for (B_CarGhost* Each : B_CarGhostsss) {
             Each->Render(renderer.m_pbrShader);
@@ -359,11 +356,6 @@ int main()
         if (Input::GetKeyDown(GLFW_KEY_C)) {
             B_CarGhostsss.clear();
         }
-
-
-
-
-
 
         for (auto& obj : objects)
             obj.Render(renderer.m_pbrShader);
