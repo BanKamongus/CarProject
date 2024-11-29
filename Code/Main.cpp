@@ -312,9 +312,40 @@ int main()
         }
 
         mainCamera->Update(deltaTime);
+
+        glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, -2.0f, 1.0f));
+        // Start Rendering Depth 
+        glm::mat4 lightProjection, lightView;
+        glm::mat4 lightSpaceMatrix;
+        //glm::vec3 useLightPos = lightPos + CarOBJ->Transform.wPosition;
+        glm::vec3 useLightPos = CarOBJ->Transform.wPosition - lightDir * 10.0f;
+
+        float near_plane = 1.0f, far_plane = 20.0f;
+        lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        lightView = glm::lookAt(useLightPos, CarOBJ->Transform.wPosition, glm::vec3(0.0, 1.0, 0.0));
+        lightSpaceMatrix = lightProjection * lightView;
+
+        renderer.RenderDepthMap(lightSpaceMatrix);
+
+        renderer.m_depthShader.setVec3("lightPos", useLightPos);
+
+        //glActiveTexture(GL_TEXTURE3);
+        //glBindTexture(GL_TEXTURE_2D, woodTexture);
+        //renderScene(renderer, renderer.m_depthShader);
+        //Model_RacetrackONLY.Draw(renderer.m_depthShader);
+
+        CarBehav->Render(renderer.m_depthShader);
+
+        for (auto& obj : objects)
+            obj.Render(renderer.m_depthShader);
+
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
 
         renderer.BeginFrame(*mainCamera);
+        renderer.m_pbrShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        renderer.m_pbrShader.setVec3("lightPos", useLightPos);
 
         
         glActiveTexture(GL_TEXTURE3);
@@ -422,7 +453,7 @@ int main()
         if (editorMode)
         {
             imgui.Begin();
-            //imgui.Render(pbrCamera, playerCar, renderer);
+            imgui.Render(pbrCamera, renderer);
             imgui.RenderLights(lights);
             imgui.End();
         }

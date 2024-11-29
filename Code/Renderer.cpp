@@ -117,10 +117,12 @@ void renderQuad()
 
 
 Renderer::Renderer()
-    //: m_baseShader("Assets/Shaders/lighting.vs", "Assets/Shaders/lighting.fs")
+//: m_baseShader("Assets/Shaders/lighting.vs", "Assets/Shaders/lighting.fs")
     : m_baseShader("Assets/Shaders/pbr.vs", "Assets/Shaders/pbr.fs")
     , m_depthShader("Assets/Shaders/shadow_depth.vs", "Assets/Shaders/shadow_depth.fs")
     , m_pbrShader("Assets/Shaders/2.2.2.pbr.vs", "Assets/Shaders/2.2.2.pbr.fs")
+    //, m_pbrShader("Assets/Shaders/pbr_shadow.vs", "Assets/Shaders/pbr_shadow.fs")
+    //, m_pbrShader("Assets/Shaders/3.1.3.shadow_mapping.vs", "Assets/Shaders/3.1.3.shadow_mapping.fs")
     , m_equirectangularToCubemapShader("Assets/Shaders/2.2.2.cubemap.vs", "Assets/Shaders/2.2.2.equirectangular_to_cubemap.fs")
     , m_irradianceShader("Assets/Shaders/2.2.2.cubemap.vs", "Assets/Shaders/2.2.2.irradiance_convolution.fs")
     , m_prefilterShader("Assets/Shaders/2.2.2.cubemap.vs", "Assets/Shaders/2.2.2.prefilter.fs")
@@ -133,13 +135,15 @@ Renderer::Renderer()
     SetupCube();
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
+    //glDepthFunc(GL_LEQUAL);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 void Renderer::RecompileShaders()
 {
     m_pbrShader = Shader("Assets/Shaders/2.2.2.pbr.vs", "Assets/Shaders/2.2.2.pbr.fs");
+    //m_pbrShader = Shader("Assets/Shaders/pbr_shadow.vs", "Assets/Shaders/pbr_shadow.fs");
+    //m_pbrShader = Shader("Assets/Shaders/3.1.3.shadow_mapping.vs", "Assets/Shaders/3.1.3.shadow_mapping.fs");
     m_pbrShader.use();
     m_pbrShader.setInt("irradianceMap", 0);
     m_pbrShader.setInt("prefilterMap", 1);
@@ -150,6 +154,7 @@ void Renderer::RecompileShaders()
     m_pbrShader.setInt("roughnessMap", 6);
     m_pbrShader.setInt("aoMap", 7);
     m_pbrShader.setInt("emissiveMap", 8);
+    m_pbrShader.setInt("shadowMap", 9);
 }
 
 Renderer::~Renderer()
@@ -170,6 +175,7 @@ void Renderer::SetupPBR(const std::string& cubeMapPath)
     m_pbrShader.setInt("roughnessMap", 6);
     m_pbrShader.setInt("aoMap", 7);
     m_pbrShader.setInt("emissiveMap", 8);
+    m_pbrShader.setInt("shadowMap", 9);
 
     m_backgroundShader.use();
     m_backgroundShader.setInt("environmentMap", 0);
@@ -505,7 +511,7 @@ void Renderer::RenderLighting(const glm::vec3& lightPosition, const glm::mat4& l
     glm::vec2 windowSize = Application::Get().GetWindowSize();
     glViewport(0, 0, windowSize.x, windowSize.y);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+
     m_baseShader.use();
     m_baseShader.setMat4("viewProjection", m_camera->GetViewProjectionMatrix());
     m_baseShader.setVec3("viewPosition", m_camera->GetPosition());
@@ -526,7 +532,7 @@ void Renderer::RenderLighting(const glm::vec3& lightPosition, const glm::mat4& l
         m_baseShader.setVec3("lightPositions[" + std::to_string(i) + "]", lightPositions[i]);
         m_baseShader.setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
     }
-    
+
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_depthMap);
 }
@@ -543,7 +549,7 @@ void Renderer::RenderSkybox()
 
 void Renderer::DrawPlane()
 {
-;   glBindVertexArray(m_planeVAO);
+    ;   glBindVertexArray(m_planeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -561,7 +567,7 @@ void Renderer::BeginFrame(Camera& camera)
     glm::vec2 windowSize = Application::Get().GetWindowSize();
 
     glViewport(0, 0, windowSize.x, windowSize.y);
-    
+
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -570,7 +576,7 @@ void Renderer::BeginFrame(Camera& camera)
     glm::mat4 view = camera.GetViewMatrix();
     m_pbrShader.setMat4("view", view);
     m_pbrShader.setVec3("camPos", camera.GetPosition());
-
+    m_pbrShader.setVec3("viewPos", camera.GetPosition());
 
     // bind pre-computed IBL data
     glActiveTexture(GL_TEXTURE0);
@@ -579,4 +585,7 @@ void Renderer::BeginFrame(Camera& camera)
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_prefilterMap);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, m_brdfLUTTexture);
+
+    glActiveTexture(GL_TEXTURE9);
+    glBindTexture(GL_TEXTURE_2D, m_depthMap);
 }

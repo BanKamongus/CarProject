@@ -45,19 +45,12 @@ glm::vec3 InputVec3(const std::string& text, const glm::vec3 & v)
 	return { values[0], values[1], values[2] };
 }
 
-void ImGuiManager::Render(Camera& camera, Car& car, Renderer& renderer)
+void ImGuiManager::Render(Camera& camera, Renderer& renderer)
 {
 	ImGui::Begin("Main");
 
 	glm::vec3 tempPos = InputVec3("Camera Pos", camera.GetPosition());
 	camera.SetPosition(tempPos);
-
-	glm::vec3 carPos = InputVec3("Car Pos", car.GetPosition());
-	car.SetPosition(carPos);
-
-	glm::vec3 carScale = InputVec3("Car Scale", car.GetScale());
-	car.SetScale(carScale);
-
 
 	if (ImGui::Button("Recompile shaders"))
 	{

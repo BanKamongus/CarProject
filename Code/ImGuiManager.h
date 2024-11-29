@@ -18,7 +18,7 @@ public:
 	ImGuiManager();
 	~ImGuiManager();
 
-	void Render(Camera& camera, Car& car, Renderer& renderer);
+	void Render(Camera& camera, Renderer& renderer);
 	void RenderLights(std::vector<Light>& lights);
 	void Begin();
 	void End();

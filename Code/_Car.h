@@ -259,7 +259,7 @@ public:
         BODY_XZ->Transform.wScale = glm::vec3(1, 1, 1);
 
         BODY = BODY_XZ->CreateChild();
-        BODY->Transform.wPosition = glm::vec3(0, 0.072, 0);
+        BODY->Transform.wPosition = glm::vec3(0, 0.015, 0);
 
         GameObj* FrontWheelOBJ;
         FrontWheelOBJ = BODY->CreateChild();
