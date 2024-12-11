@@ -301,16 +301,21 @@ public:
 
     void Start() {
         SetModel();
+        Reset();
+    }
+
+    void Reset() {
+        GameObject->Transform.wPosition = glm::vec3(284, 1, -191) * 2.5f;
+        GameObject->Transform.wRotation = glm::vec3(0, -45, 0);
+
+        BODY_XZ->Transform.wPosition = glm::vec3(0, 0, 0);
+        BODY_XZ->Transform.wRotation = glm::vec3(0, 0, 0);
+
     }
 
     void Update() {
         if (Input::GetKey(GLFW_KEY_R)) {
-            GameObject->Transform.wPosition = glm::vec3(284, 1, -191) * 2.5f;
-            GameObject->Transform.wRotation = glm::vec3(0, 100, 0);
-
-            BODY_XZ->Transform.wPosition = glm::vec3(0, 0, 0);
-            BODY_XZ->Transform.wRotation = glm::vec3(0, 0, 0);
-
+            Reset();
         }
 
         if (Input::GetKeyDown(GLFW_KEY_T)) {
@@ -717,40 +722,46 @@ void Car_Raycast_Update(GameObj* CarOBJ, B_Car* CarBehav) {
         }
 
                 if (Count_FB >= 2) {
-                    CarBehav->BODY_XZ->Transform.wRotation.x += x_yDiff * 1.9f;
+                    CarBehav->BODY_XZ->Transform.wRotation.x += x_yDiff * 500* Time.Deltatime;
                 }
                 if (Count_LR >= 2) {
-                    CarBehav->BODY_XZ->Transform.wRotation.z -= z_yDiff * 1.9f;
+                    CarBehav->BODY_XZ->Transform.wRotation.z -= z_yDiff * 1000* Time.Deltatime;
                 }      
+
                 if (Count > 0) {
                     Safe = true;
                     TargetY /= Count;
-                    CarOBJ->Transform.wPosition.y = B_lerp(CarOBJ->Transform.wPosition.y, TargetY, Time.Deltatime * 50);
+                    CarOBJ->Transform.wPosition.y = B_lerp(CarOBJ->Transform.wPosition.y, TargetY, 1);
                 }
 
 
         //Hitlocation->Transform.wPosition = rayColl_R_Hitpoint;
         //HitlocationL->Transform.wPosition = rayColl_L_Hitpoint;
-        if (glm::distance(rayColl_R_Hitpoint, CarOBJ->Transform.wPosition) < 3) {
-            CarOBJ->Transform.wPosition -= rayColl_R.Direction * 0.05f;
-            CarBehav->BackWheel.AngularVelocity *= 0.9f;
-            CarBehav->FrontWheel.Angle += 12;
+
+        float DeflectAmount = 32 * 100 * Time.Deltatime;
+        float VelRatio = 0.8 ;
+        float PosAlpha = 0.08 ;
+        float ContactRadius = 3.2 ;
+        if (glm::distance(rayColl_R_Hitpoint, CarOBJ->Transform.wPosition) < ContactRadius) {
+            CarOBJ->Transform.wPosition -= rayColl_R.Direction * PosAlpha;
+            CarBehav->BackWheel.AngularVelocity *= VelRatio;
+            CarBehav->FrontWheel.Angle += DeflectAmount;
         }
-        else if (glm::distance(rayColl_L_Hitpoint, CarOBJ->Transform.wPosition) < 3) {
-            CarOBJ->Transform.wPosition -= rayColl_L.Direction * 0.05f;
-            CarBehav->BackWheel.AngularVelocity *= 0.9f;
-            CarBehav->FrontWheel.Angle -= 12;
+        else if (glm::distance(rayColl_L_Hitpoint, CarOBJ->Transform.wPosition) < ContactRadius) {
+            CarOBJ->Transform.wPosition -= rayColl_L.Direction * PosAlpha;
+            CarBehav->BackWheel.AngularVelocity *= VelRatio;
+            CarBehav->FrontWheel.Angle -= DeflectAmount;
         }
          
-        if (glm::distance(rayColl_R_Rear_Hitpoint, CarOBJ->Transform.wPosition) < 3) {
-            CarOBJ->Transform.wPosition -= rayColl_R_Rear.Direction * 0.05f;
-            CarBehav->BackWheel.AngularVelocity *= 0.9f;
-            CarBehav->FrontWheel.Angle -= 12; 
+        if (glm::distance(rayColl_R_Rear_Hitpoint, CarOBJ->Transform.wPosition) < ContactRadius) {
+            CarOBJ->Transform.wPosition -= rayColl_R_Rear.Direction * PosAlpha;
+            CarBehav->BackWheel.AngularVelocity *= VelRatio;
+            CarBehav->FrontWheel.Angle -= DeflectAmount; 
         }
-        else if (glm::distance(rayColl_L_Rear_Hitpoint, CarOBJ->Transform.wPosition) < 3) {
-            CarOBJ->Transform.wPosition -= rayColl_L_Rear.Direction * 0.05f;
-            CarBehav->BackWheel.AngularVelocity *= 0.9f;
-            CarBehav->FrontWheel.Angle += 12;
+        else if (glm::distance(rayColl_L_Rear_Hitpoint, CarOBJ->Transform.wPosition) < ContactRadius) {
+            CarOBJ->Transform.wPosition -= rayColl_L_Rear.Direction * PosAlpha;
+            CarBehav->BackWheel.AngularVelocity *= VelRatio;
+            CarBehav->FrontWheel.Angle += DeflectAmount;
         }
 
 
