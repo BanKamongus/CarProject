@@ -71,7 +71,7 @@ public:
     void Init() {
 
         BODY = GameObject->CreateChild();
-        BODY->Transform.wPosition = glm::vec3(0, 0.5, 0);
+        BODY->Transform.wPosition = glm::vec3(0, 0, 0);
         BODY->Transform.wScale = glm::vec3(1, 1, 1)* Migrate_Scale;
 
         GameObj* FrontWheelOBJ;
@@ -283,19 +283,19 @@ public:
 
 
         RayDown_Front = BODY_XZ->CreateChild();
-        RayDown_Front->Transform.wPosition = glm::vec3(0, 1, 1);
+        RayDown_Front->Transform.wPosition = glm::vec3(0, 1.5, 1);
 
         RayDown_Back = BODY_XZ->CreateChild();
-        RayDown_Back->Transform.wPosition = glm::vec3(0, 1, -1);
+        RayDown_Back->Transform.wPosition = glm::vec3(0, 1.5, -1);
 
         RayDown_L = BODY_XZ->CreateChild();
-        RayDown_L->Transform.wPosition = glm::vec3(-1, 1, 0);
+        RayDown_L->Transform.wPosition = glm::vec3(-1, 1.5, 0);
 
         RayDown_R = BODY_XZ->CreateChild();
-        RayDown_R->Transform.wPosition = glm::vec3(1, 1, 0);
+        RayDown_R->Transform.wPosition = glm::vec3(1, 1.5, 0);
          
         rayColl_Ride = BODY_XZ->CreateChild();
-        rayColl_Ride->Transform.wPosition = glm::vec3(0, 1, 0);
+        rayColl_Ride->Transform.wPosition = glm::vec3(0, 1.5, 0);
 
     }
 
@@ -720,7 +720,7 @@ void Car_Raycast_Update(GameObj* CarOBJ, B_Car* CarBehav) {
             TargetY += rayLeft_Hitpoint.y;
             Count++; Count_LR++;
         }
-
+         
                 if (Count_FB >= 2) {
                     CarBehav->BODY_XZ->Transform.wRotation.x += x_yDiff * 500* Time.Deltatime;
                 }
@@ -738,10 +738,10 @@ void Car_Raycast_Update(GameObj* CarOBJ, B_Car* CarBehav) {
         //Hitlocation->Transform.wPosition = rayColl_R_Hitpoint;
         //HitlocationL->Transform.wPosition = rayColl_L_Hitpoint;
 
-        float DeflectAmount = 32 * 100 * Time.Deltatime;
-        float VelRatio = 0.8 ;
+        float DeflectAmount = 16 + (32) * (200 * Time.Deltatime);
+        float VelRatio = 0.64 ;
         float PosAlpha = 0.08 ;
-        float ContactRadius = 3.2 ;
+        float ContactRadius = 3.5 ;
         if (glm::distance(rayColl_R_Hitpoint, CarOBJ->Transform.wPosition) < ContactRadius) {
             CarOBJ->Transform.wPosition -= rayColl_R.Direction * PosAlpha;
             CarBehav->BackWheel.AngularVelocity *= VelRatio;
